@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  collection,
-  getDocs,
-  orderBy,
-  query,
-} from "firebase/firestore";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "../firebase";
 import BottomNav from "../components/BottomNav";
 import "./Home.css";
@@ -84,11 +79,8 @@ export default function Home({ user }) {
   return (
     <div className="home">
       <header className="home-header">
-        <div className="home-date">{today}</div>
         <div className="home-greeting-row">
-          <div className="home-greeting">
-            こんにちは、{user.email.split("@")[0]}さん
-          </div>
+          <div className="home-date">{today}</div>
           <Link to="/settings" style={{ display: "flex", flexShrink: 0, color: "#74747A" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3"></circle>
