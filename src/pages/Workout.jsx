@@ -94,7 +94,7 @@ export default function Workout({ user }) {
       </div>
 
       <Link
-        to={`/exercises?sessionId=${sessionId}`}
+        to={`/exercises?type=session&id=${sessionId}`}
         style={{
           display: "block",
           textAlign: "center",

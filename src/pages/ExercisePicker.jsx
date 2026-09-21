@@ -7,7 +7,8 @@ export default function ExercisePicker({ user }) {
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-  const sessionId = searchParams.get("sessionId");
+  const type = searchParams.get("type");
+  const id = searchParams.get("id");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,20 +21,18 @@ export default function ExercisePicker({ user }) {
   }, []);
 
   const addExercise = async (exercise) => {
-    const exercisesRef = collection(
-      db,
-      "users",
-      user.uid,
-      "sessions",
-      sessionId,
-      "exercises"
-    );
+    const parentCollection = type === "routine" ? "routines" : "sessions";
+    const exercisesRef = collection(db, "users", user.uid, parentCollection, id, "exercises");
     await addDoc(exercisesRef, {
       exerciseId: exercise.id,
       exerciseName: exercise.name,
       sortOrder: Date.now(),
     });
-    navigate(`/workout?sessionId=${sessionId}`);
+    if (type === "routine") {
+      navigate("/routines");
+    } else {
+      navigate(`/workout?sessionId=${id}`);
+    }
   };
 
   if (loading) return <p style={{ padding: 20 }}>読み込み中...</p>;

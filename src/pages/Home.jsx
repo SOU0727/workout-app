@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { Link } from "react-router-dom";
-import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  where,
+  Timestamp,
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
 import BottomNav from "../components/BottomNav";
 import "./Home.css";
@@ -19,6 +26,7 @@ function getMonday(date) {
 
 export default function Home({ user }) {
   const [weekDoneDates, setWeekDoneDates] = useState(new Set());
+  const [routines, setRoutines] = useState([]);
 
   const monday = getMonday(new Date());
   const weekDates = dayLabels.map((label, i) => {
@@ -42,6 +50,16 @@ export default function Home({ user }) {
       setWeekDoneDates(dates);
     };
     fetchThisWeekSessions();
+  }, [user.uid]);
+
+  useEffect(() => {
+    const fetchRoutines = async () => {
+      const routinesRef = collection(db, "users", user.uid, "routines");
+      const q = query(routinesRef, orderBy("createdAt"));
+      const snapshot = await getDocs(q);
+      setRoutines(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })).slice(0, 3));
+    };
+    fetchRoutines();
   }, [user.uid]);
 
   const today = new Date().toLocaleDateString("ja-JP", {
@@ -98,20 +116,17 @@ export default function Home({ user }) {
 
         <div>
           <div className="section-title">最近のルーティン</div>
-          <div className="routine-list">
-            <Link to="/routines" className="routine-chip">
-              <div className="routine-chip-title">胸の日</div>
-              <div className="routine-chip-sub">5種目</div>
-            </Link>
-            <Link to="/routines" className="routine-chip">
-              <div className="routine-chip-title">背中の日</div>
-              <div className="routine-chip-sub">4種目</div>
-            </Link>
-            <Link to="/routines" className="routine-chip">
-              <div className="routine-chip-title">脚の日</div>
-              <div className="routine-chip-sub">6種目</div>
-            </Link>
-          </div>
+          {routines.length === 0 ? (
+            <p style={{ fontSize: 12.5, color: "#74747A" }}>まだルーティンがありません。</p>
+          ) : (
+            <div className="routine-list">
+              {routines.map((r) => (
+                <Link to="/routines" className="routine-chip" key={r.id}>
+                  <div className="routine-chip-title">{r.name}</div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
