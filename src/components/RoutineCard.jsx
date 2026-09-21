@@ -18,50 +18,60 @@ export default function RoutineCard({ user, routine }) {
 
   useEffect(() => {
     const fetchExercises = async () => {
-      const exercisesRef = collection(
-        db,
-        "users",
-        user.uid,
-        "routines",
-        routine.id,
-        "exercises"
-      );
-      const q = query(exercisesRef, orderBy("sortOrder"));
-      const snapshot = await getDocs(q);
-      setExercises(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLoading(false);
+      try {
+        const exercisesRef = collection(
+          db,
+          "users",
+          user.uid,
+          "routines",
+          routine.id,
+          "exercises"
+        );
+        const q = query(exercisesRef, orderBy("sortOrder"));
+        const snapshot = await getDocs(q);
+        setExercises(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchExercises();
   }, [routine.id]);
 
   const startWorkout = async () => {
     setStarting(true);
-    const sessionsRef = collection(db, "users", user.uid, "sessions");
-    const newSession = await addDoc(sessionsRef, {
-      startedAt: serverTimestamp(),
-      endedAt: null,
-      routineId: routine.id,
-    });
+    try {
+      const sessionsRef = collection(db, "users", user.uid, "sessions");
+      const newSession = await addDoc(sessionsRef, {
+        startedAt: serverTimestamp(),
+        endedAt: null,
+        routineId: routine.id,
+      });
 
-    const sessionExercisesRef = collection(
-      db,
-      "users",
-      user.uid,
-      "sessions",
-      newSession.id,
-      "exercises"
-    );
-    await Promise.all(
-      exercises.map((ex) =>
-        addDoc(sessionExercisesRef, {
-          exerciseId: ex.exerciseId,
-          exerciseName: ex.exerciseName,
-          sortOrder: ex.sortOrder,
-        })
-      )
-    );
+      const sessionExercisesRef = collection(
+        db,
+        "users",
+        user.uid,
+        "sessions",
+        newSession.id,
+        "exercises"
+      );
+      await Promise.all(
+        exercises.map((ex) =>
+          addDoc(sessionExercisesRef, {
+            exerciseId: ex.exerciseId,
+            exerciseName: ex.exerciseName,
+            sortOrder: ex.sortOrder,
+          })
+        )
+      );
 
-    navigate(`/workout?sessionId=${newSession.id}`);
+      navigate(`/workout?sessionId=${newSession.id}`);
+    } catch (err) {
+      console.error(err);
+      setStarting(false);
+    }
   };
 
   return (
