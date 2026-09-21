@@ -1,20 +1,49 @@
+import { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { Link } from "react-router-dom";
-import { auth } from "../firebase";
+import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
+import { auth, db } from "../firebase";
 import BottomNav from "../components/BottomNav";
 import "./Home.css";
 
-const weekDays = [
-  { label: "月", done: true },
-  { label: "火", done: true },
-  { label: "水", done: false },
-  { label: "木", done: true },
-  { label: "金", done: true },
-  { label: "土", done: false },
-  { label: "日", done: false },
-];
+const dayLabels = ["月", "火", "水", "木", "金", "土", "日"];
+
+function getMonday(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
 
 export default function Home({ user }) {
+  const [weekDoneDates, setWeekDoneDates] = useState(new Set());
+
+  const monday = getMonday(new Date());
+  const weekDates = dayLabels.map((label, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return { label, date: d };
+  });
+
+  useEffect(() => {
+    const fetchThisWeekSessions = async () => {
+      const sessionsRef = collection(db, "users", user.uid, "sessions");
+      const q = query(sessionsRef, where("startedAt", ">=", Timestamp.fromDate(monday)));
+      const snapshot = await getDocs(q);
+      const dates = new Set();
+      snapshot.docs.forEach((d) => {
+        const data = d.data();
+        if (data.startedAt) {
+          dates.add(data.startedAt.toDate().toDateString());
+        }
+      });
+      setWeekDoneDates(dates);
+    };
+    fetchThisWeekSessions();
+  }, [user.uid]);
+
   const today = new Date().toLocaleDateString("ja-JP", {
     year: "numeric",
     month: "long",
@@ -44,8 +73,8 @@ export default function Home({ user }) {
             </svg>
           </div>
           <div>
-            <div className="streak-title">7日連続トレーニング中</div>
-            <div className="streak-sub">自己ベスト更新中です</div>
+            <div className="streak-title">今週 {weekDoneDates.size}日トレーニング</div>
+            <div className="streak-sub">この調子で続けましょう</div>
           </div>
         </div>
 
@@ -56,10 +85,12 @@ export default function Home({ user }) {
         <div>
           <div className="section-title">今週の記録</div>
           <div className="week-strip">
-            {weekDays.map((day) => (
+            {weekDates.map((day) => (
               <div className="week-day" key={day.label}>
                 <span className="week-day-label">{day.label}</span>
-                <span className={`week-dot ${day.done ? "done" : ""}`}></span>
+                <span
+                  className={`week-dot ${weekDoneDates.has(day.date.toDateString()) ? "done" : ""}`}
+                ></span>
               </div>
             ))}
           </div>

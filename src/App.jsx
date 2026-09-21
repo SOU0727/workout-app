@@ -28,10 +28,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home user={user} />} />
-        <Route path="/workout" element={<Workout />} />
-        <Route path="/exercises" element={<ExercisePicker />} />
-        <Route path="/progress" element={<Progress />} />
-        <Route path="/routines" element={<Routines />} />
+        <Route path="/workout" element={<Workout user={user} />} />
+        <Route path="/exercises" element={<ExercisePicker user={user} />} />
+        <Route path="/progress" element={<Progress user={user} />} />
+        <Route path="/routines" element={<Routines user={user} />} />
       </Routes>
     </BrowserRouter>
   );
