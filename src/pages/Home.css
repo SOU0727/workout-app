@@ -1,0 +1,162 @@
+.home {
+  max-width: 420px;
+  margin: 0 auto;
+  padding-bottom: 80px;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  color: #18181A;
+  background: #F5F5F5;
+  min-height: 100vh;
+}
+
+.home-header {
+  background: #fff;
+  border-bottom: 1px solid #DADADA;
+  padding: 22px 20px 18px;
+}
+
+.home-date {
+  font-size: 13px;
+  color: #74747A;
+}
+
+.home-greeting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.home-greeting {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.home-logout {
+  font-size: 12px;
+  color: #4C5B75;
+  background: none;
+  border: 1px solid #4C5B75;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.home-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.streak-card {
+  background: #fff;
+  border: 1px solid #DADADA;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.streak-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background: #FBEDE3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.streak-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.streak-sub {
+  font-size: 12.5px;
+  color: #74747A;
+  margin-top: 2px;
+}
+
+.start-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #4C5B75;
+  color: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.week-strip {
+  background: #fff;
+  border: 1px solid #DADADA;
+  border-radius: 14px;
+  padding: 14px 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.week-day-label {
+  font-size: 11px;
+  color: #74747A;
+}
+
+.week-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  border: 1.5px solid #D0D0D0;
+}
+
+.week-dot.done {
+  background: #4C5B75;
+  border: none;
+}
+
+.routine-list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.routine-chip {
+  flex-shrink: 0;
+  width: 140px;
+  background: #fff;
+  border: 1px solid #DADADA;
+  border-radius: 12px;
+  padding: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.routine-chip-title {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.routine-chip-sub {
+  font-size: 11.5px;
+  color: #74747A;
+  margin-top: 4px;
+}
