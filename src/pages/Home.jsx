@@ -1,14 +1,7 @@
 import { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { Link } from "react-router-dom";
-import {
-  collection,
-  getDocs,
-  orderBy,
-  query,
-  where,
-  Timestamp,
-} from "firebase/firestore";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import BottomNav from "../components/BottomNav";
 import "./Home.css";
@@ -24,8 +17,22 @@ function getMonday(date) {
   return d;
 }
 
+function calculateStreak(dateSet) {
+  let streak = 0;
+  const cursor = new Date();
+  cursor.setHours(0, 0, 0, 0);
+  if (!dateSet.has(cursor.toDateString())) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  while (dateSet.has(cursor.toDateString())) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
 export default function Home({ user }) {
-  const [weekDoneDates, setWeekDoneDates] = useState(new Set());
+  const [sessionDates, setSessionDates] = useState(new Set());
   const [routines, setRoutines] = useState([]);
 
   const monday = getMonday(new Date());
@@ -36,20 +43,19 @@ export default function Home({ user }) {
   });
 
   useEffect(() => {
-    const fetchThisWeekSessions = async () => {
-      const sessionsRef = collection(db, "users", user.uid, "sessions");
-      const q = query(sessionsRef, where("startedAt", ">=", Timestamp.fromDate(monday)));
-      const snapshot = await getDocs(q);
+    const fetchSets = async () => {
+      const setsRef = collection(db, "users", user.uid, "sets");
+      const snapshot = await getDocs(setsRef);
       const dates = new Set();
       snapshot.docs.forEach((d) => {
         const data = d.data();
-        if (data.startedAt) {
-          dates.add(data.startedAt.toDate().toDateString());
+        if (data.completedAt) {
+          dates.add(data.completedAt.toDate().toDateString());
         }
       });
-      setWeekDoneDates(dates);
+      setSessionDates(dates);
     };
-    fetchThisWeekSessions();
+    fetchSets();
   }, [user.uid]);
 
   useEffect(() => {
@@ -61,6 +67,8 @@ export default function Home({ user }) {
     };
     fetchRoutines();
   }, [user.uid]);
+
+  const streak = calculateStreak(sessionDates);
 
   const today = new Date().toLocaleDateString("ja-JP", {
     year: "numeric",
@@ -91,7 +99,9 @@ export default function Home({ user }) {
             </svg>
           </div>
           <div>
-            <div className="streak-title">今週 {weekDoneDates.size}日トレーニング</div>
+            <div className="streak-title">
+              {streak > 0 ? `${streak}日連続トレーニング中` : "今日から始めましょう"}
+            </div>
             <div className="streak-sub">この調子で続けましょう</div>
           </div>
         </div>
@@ -107,7 +117,7 @@ export default function Home({ user }) {
               <div className="week-day" key={day.label}>
                 <span className="week-day-label">{day.label}</span>
                 <span
-                  className={`week-dot ${weekDoneDates.has(day.date.toDateString()) ? "done" : ""}`}
+                  className={`week-dot ${sessionDates.has(day.date.toDateString()) ? "done" : ""}`}
                 ></span>
               </div>
             ))}

@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "../firebase";
 
 export default function RoutineCard({ user, routine }) {
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [starting, setStarting] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchExercises = async () => {
@@ -25,23 +34,56 @@ export default function RoutineCard({ user, routine }) {
     fetchExercises();
   }, [routine.id]);
 
+  const startWorkout = async () => {
+    setStarting(true);
+    const sessionsRef = collection(db, "users", user.uid, "sessions");
+    const newSession = await addDoc(sessionsRef, {
+      startedAt: serverTimestamp(),
+      endedAt: null,
+      routineId: routine.id,
+    });
+
+    const sessionExercisesRef = collection(
+      db,
+      "users",
+      user.uid,
+      "sessions",
+      newSession.id,
+      "exercises"
+    );
+    await Promise.all(
+      exercises.map((ex) =>
+        addDoc(sessionExercisesRef, {
+          exerciseId: ex.exerciseId,
+          exerciseName: ex.exerciseName,
+          sortOrder: ex.sortOrder,
+        })
+      )
+    );
+
+    navigate(`/workout?sessionId=${newSession.id}`);
+  };
+
   return (
     <div style={{ border: "1px solid #DADADA", borderRadius: 12, padding: 14, marginBottom: 10 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ fontWeight: 700 }}>{routine.name}</div>
-        <Link
-          to="/workout"
+        <button
+          onClick={startWorkout}
+          disabled={loading || starting}
           style={{
             background: "#4C5B75",
             color: "#fff",
+            border: "none",
             borderRadius: 999,
             padding: "6px 14px",
             fontSize: 12.5,
-            textDecoration: "none",
+            cursor: loading || starting ? "default" : "pointer",
+            opacity: loading || starting ? 0.6 : 1,
           }}
         >
-          開始
-        </Link>
+          {starting ? "準備中..." : "開始"}
+        </button>
       </div>
 
       {!loading && (

@@ -26,29 +26,57 @@ export default function Auth() {
   };
 
   return (
-    <div style={{ maxWidth: 320, margin: "80px auto", padding: 24 }}>
-      <h1>{isSignup ? "新規登録" : "ログイン"}</h1>
-      <form onSubmit={handleSubmit}>
+    <div
+      style={{
+        maxWidth: 360,
+        margin: "0 auto",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: 24,
+      }}
+    >
+      <h1 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", marginBottom: 24 }}>
+        {isSignup ? "新規登録" : "ログイン"}
+      </h1>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <input
           type="email"
           placeholder="メールアドレス"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          style={{ padding: 14, border: "1px solid #DADADA", borderRadius: 10, fontSize: 16 }}
         />
-        <br />
         <input
           type="password"
           placeholder="パスワード"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          style={{ padding: 14, border: "1px solid #DADADA", borderRadius: 10, fontSize: 16 }}
         />
-        <br />
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">{isSignup ? "登録する" : "ログイン"}</button>
+        {error && <p style={{ color: "#9A3B33", fontSize: 13 }}>{error}</p>}
+        <button
+          type="submit"
+          style={{
+            background: "#4C5B75",
+            color: "#fff",
+            border: "none",
+            borderRadius: 10,
+            padding: 14,
+            fontSize: 16,
+            fontWeight: 700,
+          }}
+        >
+          {isSignup ? "登録する" : "ログイン"}
+        </button>
       </form>
-      <button onClick={() => setIsSignup(!isSignup)}>
+      <button
+        onClick={() => setIsSignup(!isSignup)}
+        style={{ marginTop: 16, background: "none", border: "none", color: "#4C5B75", fontSize: 14 }}
+      >
         {isSignup ? "ログインはこちら" : "アカウントを作る"}
       </button>
     </div>
