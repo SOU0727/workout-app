@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import Auth from "./Auth";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Workout from "./pages/Workout";
+import ExercisePicker from "./pages/ExercisePicker";
+import Progress from "./pages/Progress";
+import Routines from "./pages/Routines";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -16,14 +22,18 @@ function App() {
   }, []);
 
   if (loading) return <p>読み込み中...</p>;
-
   if (!user) return <Auth />;
 
   return (
-    <div style={{ maxWidth: 320, margin: "80px auto", padding: 24 }}>
-      <p>ようこそ、{user.email} さん</p>
-      <button onClick={() => signOut(auth)}>ログアウト</button>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home user={user} />} />
+        <Route path="/workout" element={<Workout />} />
+        <Route path="/exercises" element={<ExercisePicker />} />
+        <Route path="/progress" element={<Progress />} />
+        <Route path="/routines" element={<Routines />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
