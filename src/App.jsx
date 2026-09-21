@@ -8,6 +8,7 @@ import Workout from "./pages/Workout";
 import ExercisePicker from "./pages/ExercisePicker";
 import Progress from "./pages/Progress";
 import Routines from "./pages/Routines";
+import Settings from "./pages/Settings";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -32,6 +33,7 @@ function App() {
         <Route path="/exercises" element={<ExercisePicker user={user} />} />
         <Route path="/progress" element={<Progress user={user} />} />
         <Route path="/routines" element={<Routines user={user} />} />
+        <Route path="/settings" element={<Settings user={user} />} />
       </Routes>
     </BrowserRouter>
   );
