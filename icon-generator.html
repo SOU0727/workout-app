@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>アイコン生成</title></head>
+<body style="font-family:sans-serif; text-align:center; padding:40px;">
+  <h1>アプリアイコンを生成</h1>
+  <canvas id="c192" width="192" height="192" style="border:1px solid #ccc;"></canvas>
+  <canvas id="c512" width="512" height="512" style="border:1px solid #ccc; display:block; margin:20px auto; width:192px; height:192px;"></canvas>
+  <br>
+  <a id="dl192" download="icon-192.png" style="font-size:18px;">192x192をダウンロード</a><br><br>
+  <a id="dl512" download="icon-512.png" style="font-size:18px;">512x512をダウンロード</a>
+
+  <script>
+    function drawRoundedRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function draw(canvasId, size) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+
+      drawRoundedRect(ctx, 0, 0, size, size, size * 0.22);
+      ctx.fillStyle = '#4C5B75';
+      ctx.fill();
+
+      ctx.fillStyle = '#FFFFFF';
+
+      const barH = size * 0.09;
+      drawRoundedRect(ctx, size * 0.28, size / 2 - barH / 2, size * 0.44, barH, barH / 2);
+      ctx.fill();
+
+      const plateW = size * 0.12;
+      const plateH = size * 0.5;
+      drawRoundedRect(ctx, size * 0.14, size / 2 - plateH / 2, plateW, plateH, size * 0.03);
+      ctx.fill();
+      drawRoundedRect(ctx, size * 0.74, size / 2 - plateH / 2, plateW, plateH, size * 0.03);
+      ctx.fill();
+
+      return canvas.toDataURL('image/png');
+    }
+
+    document.getElementById('dl192').href = draw('c192', 192);
+    document.getElementById('dl512').href = draw('c512', 512);
+  </script>
+</body>
+</html>
