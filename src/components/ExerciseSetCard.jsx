@@ -1,34 +1,10 @@
-import { useEffect, useState } from "react";
-import {
-  addDoc,
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  where,
-} from "firebase/firestore";
+import { useState } from "react";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
-export default function ExerciseSetCard({ user, sessionId, sessionExercise }) {
-  const [sets, setSets] = useState([]);
+export default function ExerciseSetCard({ user, sessionId, sessionExercise, sets }) {
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
-
-  useEffect(() => {
-    const q = query(
-      collection(db, "users", user.uid, "sets"),
-      where("sessionExerciseId", "==", sessionExercise.id),
-      orderBy("setNumber")
-    );
-    return onSnapshot(
-      q,
-      (snapshot) => {
-        setSets(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-      },
-      (err) => console.error(err)
-    );
-  }, [user.uid, sessionExercise.id]);
 
   const addSet = (e) => {
     e.preventDefault();
