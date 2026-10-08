@@ -89,7 +89,10 @@ export default function ExerciseSetCard({ user, sessionId, sessionExercise, sets
   };
 
   return (
-    <div style={{ border: "1px solid #DADADA", borderRadius: 14, padding: 14, marginBottom: 10 }}>
+    <div
+      data-exercise-id={sessionExercise.exerciseId}
+      style={{ border: "1px solid #DADADA", borderRadius: 14, padding: 14, marginBottom: 10 }}
+    >
       <div
         style={{
           display: "flex",

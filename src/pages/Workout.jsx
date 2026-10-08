@@ -69,6 +69,7 @@ export default function Workout({ user }) {
   const [error, setError] = useState("");
   const [log, setLog] = useState([]);
   const initializedRef = useRef(false);
+  const focusedRef = useRef(false);
   const debugRef = useRef(false);
   const startRef = useRef(0);
   const navigate = useNavigate();
@@ -181,6 +182,16 @@ export default function Workout({ user }) {
       (err) => console.error(err)
     );
   }, [sessionId, user.uid, mark]);
+
+  const focusId = searchParams.get("focus");
+  useEffect(() => {
+    if (!focusId || sessionExercises.length === 0 || focusedRef.current) return;
+    const card = document.querySelector(`[data-exercise-id="${CSS.escape(focusId)}"]`);
+    if (!card) return;
+    focusedRef.current = true;
+    card.scrollIntoView({ block: "center", behavior: "smooth" });
+    card.querySelector('input[type="number"]')?.focus({ preventScroll: true });
+  }, [focusId, sessionExercises]);
 
   const finishSession = () => {
     clearCurrentSession();

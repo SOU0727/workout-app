@@ -34,6 +34,7 @@ function calculateStreak(dateSet) {
 export default function Home({ user }) {
   const [sessionDates, setSessionDates] = useState(new Set());
   const [todayGroups, setTodayGroups] = useState([]);
+  const [todaySessionId, setTodaySessionId] = useState(null);
   const [routines, setRoutines] = useState([]);
 
   const monday = getMonday(new Date());
@@ -63,12 +64,14 @@ export default function Home({ user }) {
       todaySets.forEach((s) => {
         let g = groups.find((x) => x.exerciseId === s.exerciseId);
         if (!g) {
-          g = { exerciseId: s.exerciseId, name: s.exerciseName, sets: [] };
+          g = { exerciseId: s.exerciseId, name: s.exerciseName, sessionId: s.sessionId, sets: [] };
           groups.push(g);
         }
+        g.sessionId = s.sessionId;
         g.sets.push(s);
       });
       setTodayGroups(groups);
+      setTodaySessionId(todaySets.length > 0 ? todaySets[todaySets.length - 1].sessionId : null);
     };
 
     const cutoff = new Date();
@@ -131,7 +134,24 @@ export default function Home({ user }) {
         </Link>
 
         <div>
-          <div className="section-title">今日の記録</div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 10,
+            }}
+          >
+            <div className="section-title" style={{ marginBottom: 0 }}>今日の記録</div>
+            {todayGroups.length > 0 && (
+              <Link
+                to={`/workout?sessionId=${todaySessionId}`}
+                style={{ fontSize: 12.5, color: "#4C5B75", fontWeight: 700 }}
+              >
+                続きを入力 ›
+              </Link>
+            )}
+          </div>
           {todayGroups.length === 0 ? (
             <p style={{ fontSize: 12.5, color: "#74747A" }}>今日はまだ記録がありません。</p>
           ) : (
@@ -144,18 +164,39 @@ export default function Home({ user }) {
               }}
             >
               {todayGroups.map((g, i) => (
-                <div
+                <Link
                   key={g.exerciseId}
+                  to={`/workout?sessionId=${g.sessionId}&focus=${g.exerciseId}`}
                   style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 8,
                     padding: "10px 0",
                     borderTop: i === 0 ? "none" : "1px solid #EDEDEE",
+                    color: "inherit",
                   }}
                 >
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>{g.name}</div>
-                  <div style={{ fontSize: 12.5, color: "#74747A", marginTop: 3 }}>
-                    {g.sets.map((s) => `${s.weight}kg × ${s.reps}回`).join("  ・  ")}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700 }}>{g.name}</div>
+                    <div style={{ fontSize: 12.5, color: "#74747A", marginTop: 3 }}>
+                      {g.sets.map((s) => `${s.weight}kg × ${s.reps}回`).join("  ・  ")}
+                    </div>
                   </div>
-                </div>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#A3A3AA"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ flexShrink: 0 }}
+                  >
+                    <path d="m9 6 6 6-6 6"></path>
+                  </svg>
+                </Link>
               ))}
             </div>
           )}
