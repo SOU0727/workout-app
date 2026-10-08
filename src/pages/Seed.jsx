@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 
 const presetExercises = [
@@ -49,6 +49,24 @@ export default function Seed() {
     setStatus(`完了しました(${presetExercises.length}件追加)`);
   };
 
+  const runDedupe = async () => {
+    setStatus("重複を確認中...");
+    const presetsRef = collection(db, "exercisePresets");
+    const snapshot = await getDocs(presetsRef);
+    const seen = new Map();
+    let deleted = 0;
+    for (const docSnap of snapshot.docs) {
+      const name = docSnap.data().name;
+      if (seen.has(name)) {
+        await deleteDoc(doc(db, "exercisePresets", docSnap.id));
+        deleted++;
+      } else {
+        seen.set(name, docSnap.id);
+      }
+    }
+    setStatus(`重複を${deleted}件削除しました(残り${seen.size}件)`);
+  };
+
   return (
     <div style={{ maxWidth: 420, margin: "0 auto", padding: 20 }}>
       <h1 style={{ fontSize: 20 }}>種目プリセットの一括追加(一時的なページ)</h1>
@@ -70,6 +88,29 @@ export default function Seed() {
       >
         プリセットを追加する
       </button>
+
+      <hr style={{ margin: "24px 0", border: "none", borderTop: "1px solid #DADADA" }} />
+
+      <h2 style={{ fontSize: 16 }}>重複データの削除</h2>
+      <p style={{ color: "#74747A", fontSize: 13 }}>
+        同じ名前の種目が複数登録されてしまった場合、重複分だけ削除します(それぞれ最初の1件は残します)。
+      </p>
+      <button
+        onClick={runDedupe}
+        style={{
+          background: "#9A3B33",
+          color: "#fff",
+          border: "none",
+          borderRadius: 10,
+          padding: 14,
+          fontSize: 15,
+          fontWeight: 700,
+          width: "100%",
+        }}
+      >
+        重複を削除する
+      </button>
+
       {status && <p style={{ marginTop: 16 }}>{status}</p>}
     </div>
   );
