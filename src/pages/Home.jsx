@@ -32,6 +32,7 @@ function calculateStreak(dateSet) {
 
 export default function Home({ user }) {
   const [sessionDates, setSessionDates] = useState(new Set());
+  const [todayGroups, setTodayGroups] = useState([]);
   const [routines, setRoutines] = useState([]);
 
   const monday = getMonday(new Date());
@@ -45,14 +46,30 @@ export default function Home({ user }) {
     const fetchSets = async () => {
       const setsRef = collection(db, "users", user.uid, "sets");
       const snapshot = await getDocs(setsRef);
+      const todayKey = new Date().toDateString();
       const dates = new Set();
+      const todaySets = [];
       snapshot.docs.forEach((d) => {
         const data = d.data();
         if (data.completedAt) {
-          dates.add(data.completedAt.toDate().toDateString());
+          const key = data.completedAt.toDate().toDateString();
+          dates.add(key);
+          if (key === todayKey) todaySets.push(data);
         }
       });
       setSessionDates(dates);
+
+      todaySets.sort((a, b) => a.completedAt.toMillis() - b.completedAt.toMillis());
+      const groups = [];
+      todaySets.forEach((s) => {
+        let g = groups.find((x) => x.exerciseId === s.exerciseId);
+        if (!g) {
+          g = { exerciseId: s.exerciseId, name: s.exerciseName, sets: [] };
+          groups.push(g);
+        }
+        g.sets.push(s);
+      });
+      setTodayGroups(groups);
     };
     fetchSets();
   }, [user.uid]);
@@ -106,8 +123,39 @@ export default function Home({ user }) {
         </div>
 
         <Link to="/workout" className="start-button">
-          ワークアウトを開始
+          {todayGroups.length > 0 ? "ワークアウトを再開" : "ワークアウトを開始"}
         </Link>
+
+        <div>
+          <div className="section-title">今日の記録</div>
+          {todayGroups.length === 0 ? (
+            <p style={{ fontSize: 12.5, color: "#74747A" }}>今日はまだ記録がありません。</p>
+          ) : (
+            <div
+              style={{
+                background: "#fff",
+                border: "1px solid #DADADA",
+                borderRadius: 14,
+                padding: "4px 14px",
+              }}
+            >
+              {todayGroups.map((g, i) => (
+                <div
+                  key={g.exerciseId}
+                  style={{
+                    padding: "10px 0",
+                    borderTop: i === 0 ? "none" : "1px solid #EDEDEE",
+                  }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>{g.name}</div>
+                  <div style={{ fontSize: 12.5, color: "#74747A", marginTop: 3 }}>
+                    {g.sets.map((s) => `${s.weight}kg × ${s.reps}回`).join("  ・  ")}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div>
           <div className="section-title">今週の記録</div>

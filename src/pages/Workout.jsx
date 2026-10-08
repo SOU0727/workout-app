@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   addDoc,
@@ -19,23 +19,50 @@ export default function Workout({ user }) {
   const [sessionId, setSessionId] = useState(null);
   const [sessionExercises, setSessionExercises] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const initializedRef = useRef(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     const ensureSession = async () => {
-      let id = searchParams.get("sessionId");
-      if (!id) {
-        const sessionsRef = collection(db, "users", user.uid, "sessions");
-        const newSession = await addDoc(sessionsRef, {
-          startedAt: serverTimestamp(),
-          endedAt: null,
-          routineId: null,
-        });
-        id = newSession.id;
-        setSearchParams({ sessionId: id }, { replace: true });
+      try {
+        let id = searchParams.get("sessionId");
+        if (!id) {
+          const sessionsRef = collection(db, "users", user.uid, "sessions");
+          const snapshot = await getDocs(sessionsRef);
+          const todayKey = new Date().toDateString();
+          const openToday = snapshot.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .filter(
+              (s) =>
+                s.startedAt &&
+                !s.endedAt &&
+                s.startedAt.toDate().toDateString() === todayKey
+            )
+            .sort((a, b) => b.startedAt.toMillis() - a.startedAt.toMillis());
+
+          if (openToday.length > 0) {
+            id = openToday[0].id;
+          } else {
+            const newSession = await addDoc(sessionsRef, {
+              startedAt: serverTimestamp(),
+              endedAt: null,
+              routineId: null,
+            });
+            id = newSession.id;
+          }
+          setSearchParams({ sessionId: id }, { replace: true });
+        }
+        setSessionId(id);
+      } catch (err) {
+        console.error(err);
+        setError("読み込みに失敗しました。通信環境を確認してもう一度お試しください。");
+      } finally {
+        setLoading(false);
       }
-      setSessionId(id);
-      setLoading(false);
     };
     ensureSession();
   }, [user.uid]);
@@ -64,10 +91,11 @@ export default function Workout({ user }) {
     navigate("/");
   };
 
-  if (loading) return <p style={{ padding: 20 }}>セッションを開始しています...</p>;
+  if (loading) return <p style={{ padding: 20 }}>読み込み中...</p>;
+  if (error) return <p style={{ padding: 20, color: "#9A3B33" }}>{error}</p>;
 
   return (
-    <div style={{ maxWidth: 420, margin: "0 auto", paddingBottom: 80, padding: 20 }}>
+    <div style={{ maxWidth: 420, margin: "0 auto", padding: "20px 20px 80px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1 style={{ fontSize: 20 }}>今日のワークアウト</h1>
         <button
