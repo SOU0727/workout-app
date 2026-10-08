@@ -95,8 +95,10 @@ function Body({ selectedGroup, onSelect }) {
   const getState = useThree((s) => s.get);
   const invalidate = useThree((s) => s.invalidate);
   const size = useThree((s) => s.size);
+  const gl = useThree((s) => s.gl);
   const controlsRef = useRef(null);
   const zoomRef = useRef(1);
+  const boundsRef = useRef({ min: 0, max: 0 });
   const body = useMemo(() => buildBody(scene), [scene]);
 
   useEffect(() => {
@@ -104,6 +106,7 @@ function Body({ selectedGroup, onSelect }) {
     const box = new THREE.Box3().setFromObject(body.group);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
+    boundsRef.current = { min: box.min.y, max: box.max.y };
     const dist = (size.y / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.06;
     camera.position.set(center.x, center.y, center.z + dist);
     camera.near = dist / 50;
@@ -155,9 +158,63 @@ function Body({ selectedGroup, onSelect }) {
     return () => cancelAnimationFrame(frame);
   }, [selectedGroup, size, getState, invalidate]);
 
+  useEffect(() => {
+    const el = gl.domElement;
+    const pointers = new Map();
+    let lastY = null;
+
+    const panVertical = (dy) => {
+      const controls = controlsRef.current;
+      if (!controls) return;
+      const { camera, size: canvasSize } = getState();
+      const distance = camera.position.distanceTo(controls.target);
+      const viewScale =
+        camera.view && camera.view.enabled ? camera.view.height / camera.view.fullHeight : 1;
+      const perPixel =
+        (2 * distance * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * viewScale) /
+        canvasSize.height;
+      const { min, max } = boundsRef.current;
+      const nextY = THREE.MathUtils.clamp(controls.target.y + dy * perPixel, min, max);
+      const delta = nextY - controls.target.y;
+      controls.target.y += delta;
+      camera.position.y += delta;
+      controls.update();
+      invalidate();
+    };
+
+    const onDown = (e) => {
+      pointers.set(e.pointerId, e.clientY);
+      lastY = pointers.size === 1 ? e.clientY : null;
+    };
+    const onMove = (e) => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, e.clientY);
+      if (pointers.size !== 1 || lastY === null) return;
+      const dy = e.clientY - lastY;
+      lastY = e.clientY;
+      panVertical(dy);
+    };
+    const onUp = (e) => {
+      pointers.delete(e.pointerId);
+      lastY = pointers.size === 1 ? [...pointers.values()][0] : null;
+    };
+
+    el.addEventListener("pointerdown", onDown);
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointercancel", onUp);
+    return () => {
+      el.removeEventListener("pointerdown", onDown);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerup", onUp);
+      el.removeEventListener("pointercancel", onUp);
+    };
+  }, [gl, getState, invalidate]);
+
   useEffect(() => () => body.dispose(), [body]);
 
   const handleClick = (e) => {
+    if (e.delta > 6) return;
     const group = e.object.userData.group;
     if (!group) return;
     e.stopPropagation();

@@ -89,13 +89,15 @@ export default function BodyPicker({
               padding: "5px 12px",
               borderRadius: 999,
               background: "rgba(255,255,255,0.88)",
-              whiteSpace: "nowrap",
-              fontSize: 12.5,
+              width: "max-content",
+              maxWidth: "calc(100% - 24px)",
+              textAlign: "center",
+              fontSize: 12,
               color: "#74747A",
               pointerEvents: "none",
             }}
           >
-            部位をタップして種目を表示(ドラッグで回転)
+            部位をタップ ・ 横ドラッグで回転 ・ 縦ドラッグで上下移動 ・ ピンチで拡大
           </p>
         )}
 
