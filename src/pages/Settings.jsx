@@ -35,7 +35,11 @@ export default function Settings({ user }) {
         ログアウト
       </button>
 
-      <div style={{ marginTop: 32, fontSize: 11.5, color: "#74747A", lineHeight: 1.8 }}>
+      <div style={{ marginTop: 24, fontSize: 11.5, color: "#74747A" }}>
+        アプリの版: {new Date(import.meta.env.VITE_BUILD_TIME).toLocaleString("ja-JP")}
+      </div>
+
+      <div style={{ marginTop: 20, fontSize: 11.5, color: "#74747A", lineHeight: 1.8 }}>
         <div style={{ fontWeight: 700, marginBottom: 2 }}>クレジット</div>
         3D人体モデル:{" "}
         <a href="https://lluisv.itch.io/z-anatomy" target="_blank" rel="noreferrer" style={{ color: "#4C5B75" }}>
