@@ -34,6 +34,22 @@ export default function Settings({ user }) {
       >
         ログアウト
       </button>
+
+      <div style={{ marginTop: 32, fontSize: 11.5, color: "#74747A", lineHeight: 1.8 }}>
+        <div style={{ fontWeight: 700, marginBottom: 2 }}>クレジット</div>
+        3D人体モデル:{" "}
+        <a href="https://lluisv.itch.io/z-anatomy" target="_blank" rel="noreferrer" style={{ color: "#4C5B75" }}>
+          Z-Anatomy
+        </a>
+        (BodyParts3D 由来)。{" "}
+        <a href="https://github.com/jeremyspm/flesh-and-bone" target="_blank" rel="noreferrer" style={{ color: "#4C5B75" }}>
+          flesh-and-bone
+        </a>{" "}
+        で整理されたデータを使用し、色分け・一部非表示などの加工をしています。ライセンス:{" "}
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer" style={{ color: "#4C5B75" }}>
+          CC BY-SA 4.0
+        </a>
+      </div>
     </div>
   );
 }
