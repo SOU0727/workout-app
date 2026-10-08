@@ -90,6 +90,11 @@ function buildBody(scene) {
   return { group, materials, dispose };
 }
 
+function verticalLimit(camera, target, fit) {
+  const distance = camera.position.distanceTo(target);
+  return Math.max(0, (fit.distance - distance) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+}
+
 function Body({ selectedGroup, onSelect }) {
   const { scene } = useGLTF(MODEL_URL);
   const getState = useThree((s) => s.get);
@@ -98,7 +103,7 @@ function Body({ selectedGroup, onSelect }) {
   const gl = useThree((s) => s.gl);
   const controlsRef = useRef(null);
   const zoomRef = useRef(1);
-  const boundsRef = useRef({ min: 0, max: 0 });
+  const fitRef = useRef({ distance: 1, centerY: 0 });
   const body = useMemo(() => buildBody(scene), [scene]);
 
   useEffect(() => {
@@ -106,8 +111,8 @@ function Body({ selectedGroup, onSelect }) {
     const box = new THREE.Box3().setFromObject(body.group);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    boundsRef.current = { min: box.min.y, max: box.max.y };
     const dist = (size.y / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.06;
+    fitRef.current = { distance: dist, centerY: center.y };
     camera.position.set(center.x, center.y, center.z + dist);
     camera.near = dist / 50;
     camera.far = dist * 20;
@@ -173,8 +178,13 @@ function Body({ selectedGroup, onSelect }) {
       const perPixel =
         (2 * distance * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * viewScale) /
         canvasSize.height;
-      const { min, max } = boundsRef.current;
-      const nextY = THREE.MathUtils.clamp(controls.target.y + dy * perPixel, min, max);
+      const fit = fitRef.current;
+      const limit = verticalLimit(camera, controls.target, fit);
+      const nextY = THREE.MathUtils.clamp(
+        controls.target.y + dy * perPixel,
+        fit.centerY - limit,
+        fit.centerY + limit
+      );
       const delta = nextY - controls.target.y;
       controls.target.y += delta;
       camera.position.y += delta;
@@ -210,6 +220,28 @@ function Body({ selectedGroup, onSelect }) {
       el.removeEventListener("pointercancel", onUp);
     };
   }, [gl, getState, invalidate]);
+
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    const keepInRange = () => {
+      const camera = getState().camera;
+      const fit = fitRef.current;
+      const limit = verticalLimit(camera, controls.target, fit);
+      const clampedY = THREE.MathUtils.clamp(
+        controls.target.y,
+        fit.centerY - limit,
+        fit.centerY + limit
+      );
+      const delta = clampedY - controls.target.y;
+      if (Math.abs(delta) > 1e-6) {
+        controls.target.y += delta;
+        camera.position.y += delta;
+      }
+    };
+    controls.addEventListener("change", keepInRange);
+    return () => controls.removeEventListener("change", keepInRange);
+  }, [getState]);
 
   useEffect(() => () => body.dispose(), [body]);
 

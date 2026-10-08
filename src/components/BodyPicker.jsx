@@ -97,7 +97,7 @@ export default function BodyPicker({
               pointerEvents: "none",
             }}
           >
-            部位をタップ ・ 横ドラッグで回転 ・ 縦ドラッグで上下移動 ・ ピンチで拡大
+            部位をタップ ・ 横ドラッグで回転 ・ ピンチで拡大(拡大中は縦ドラッグで上下移動)
           </p>
         )}
 
