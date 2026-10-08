@@ -1,39 +1,16 @@
-import { Component, Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Timestamp, addDoc, collection, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { getDocsCacheFirst } from "../firestoreHelpers";
 import { dataGroupMap } from "../bodyGroups";
-
-const BodyViewer = lazy(() => import("../components/BodyViewer"));
+import BodyPicker from "../components/BodyPicker";
+import { BackButton, ExerciseRow } from "../components/PickerParts";
 
 const muscleGroupOrder = ["胸", "背中", "脚", "肩", "腕", "体幹"];
-const MODE_KEY = "pickerMode";
+const MODE_KEY = "pickerModeV2";
 
 const toList = (snapshot) => snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-class ViewerBoundary extends Component {
-  state = { failed: false };
-
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-
-  componentDidCatch(error) {
-    console.error(error);
-  }
-
-  render() {
-    if (this.state.failed) {
-      return (
-        <p style={{ padding: 20, color: "#74747A", fontSize: 13 }}>
-          この端末では3D表示を読み込めませんでした。「リスト」表示をお使いください。
-        </p>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 function ModeToggle({ mode, onChange }) {
   const tab = (value, label) => (
@@ -61,56 +38,6 @@ function ModeToggle({ mode, onChange }) {
   );
 }
 
-function BackButton({ onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-label="戻る"
-      style={{ background: "none", border: "none", padding: 0, display: "flex", cursor: "pointer" }}
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#18181A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="m15 18-6-6 6-6"></path>
-      </svg>
-    </button>
-  );
-}
-
-function ExerciseRow({ exercise, used, onSelect }) {
-  return (
-    <li
-      onClick={() => onSelect(exercise)}
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: 12,
-        border: "1px solid #DADADA",
-        borderRadius: 12,
-        marginBottom: 8,
-        cursor: "pointer",
-      }}
-    >
-      <div>
-        <div style={{ fontWeight: 600 }}>{exercise.name}</div>
-        <div style={{ fontSize: 12, color: "#74747A" }}>{exercise.muscleGroups?.join("・")}</div>
-      </div>
-      {used && (
-        <span
-          style={{
-            fontSize: 11,
-            color: "#4C5B75",
-            background: "#E9EDF3",
-            padding: "3px 8px",
-            borderRadius: 6,
-          }}
-        >
-          使用済み
-        </span>
-      )}
-    </li>
-  );
-}
-
 export default function ExercisePicker({ user }) {
   const [presets, setPresets] = useState([]);
   const [customs, setCustoms] = useState([]);
@@ -122,9 +49,9 @@ export default function ExercisePicker({ user }) {
   const [bodyGroup, setBodyGroup] = useState(null);
   const [mode, setMode] = useState(() => {
     try {
-      return localStorage.getItem(MODE_KEY) === "body" ? "body" : "list";
+      return localStorage.getItem(MODE_KEY) === "list" ? "list" : "body";
     } catch {
-      return "list";
+      return "body";
     }
   });
   const [newName, setNewName] = useState("");
@@ -281,56 +208,19 @@ export default function ExercisePicker({ user }) {
 
   if (mode === "body") {
     const dataGroup = bodyGroup ? dataGroupMap[bodyGroup] : null;
-    const bodyList = dataGroup ? groupedExercises[dataGroup] || [] : [];
 
     return (
-      <div style={{ maxWidth: 420, margin: "0 auto", padding: "20px 20px 40px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <BackButton onClick={() => navigate(-1)} />
-            <h1 style={{ fontSize: 20, margin: 0 }}>種目を選択</h1>
-          </div>
-          <ModeToggle mode={mode} onChange={changeMode} />
-        </div>
-
-        <div
-          style={{
-            height: "50vh",
-            minHeight: 300,
-            marginTop: 14,
-            background: "#fff",
-            border: "1px solid #DADADA",
-            borderRadius: 14,
-            overflow: "hidden",
-          }}
-        >
-          <ViewerBoundary>
-            <Suspense fallback={<p style={{ padding: 20, color: "#74747A", fontSize: 13 }}>読み込み中...</p>}>
-              <BodyViewer selectedGroup={bodyGroup} onSelect={setBodyGroup} />
-            </Suspense>
-          </ViewerBoundary>
-        </div>
-
-        <p style={{ fontSize: 12.5, color: "#74747A", margin: "10px 2px" }}>
-          {bodyGroup
-            ? `${bodyGroup}${dataGroup !== bodyGroup ? `(${dataGroup}の種目を表示)` : ""}`
-            : "部位をタップして種目を表示(ドラッグで回転)"}
-        </p>
-
-        {bodyGroup && bodyList.length === 0 && (
-          <p style={{ fontSize: 13, color: "#74747A" }}>この部位の種目はまだ登録されていません。</p>
-        )}
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {bodyList.map((ex) => (
-            <ExerciseRow
-              key={ex.id}
-              exercise={ex}
-              used={Boolean(lastUsedMap[ex.id])}
-              onSelect={addExercise}
-            />
-          ))}
-        </ul>
-      </div>
+      <BodyPicker
+        title="種目を選択"
+        onBack={() => navigate(-1)}
+        toggle={<ModeToggle mode={mode} onChange={changeMode} />}
+        bodyGroup={bodyGroup}
+        onBodyGroupChange={setBodyGroup}
+        dataGroup={dataGroup}
+        list={dataGroup ? groupedExercises[dataGroup] || [] : []}
+        usedMap={lastUsedMap}
+        onSelectExercise={addExercise}
+      />
     );
   }
 

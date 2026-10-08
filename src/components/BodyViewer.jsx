@@ -10,6 +10,7 @@ const NEUTRAL = "__neutral";
 const NEUTRAL_COLOR = "#B8BCC4";
 const TINT_COLOR = "#A8B3C7";
 const ACCENT_COLOR = "#4C5B75";
+const SHEET_SCALE = 0.58;
 
 function bakeGeometry(mesh) {
   let g = mesh.geometry.clone();
@@ -93,7 +94,9 @@ function Body({ selectedGroup, onSelect }) {
   const { scene } = useGLTF(MODEL_URL);
   const getState = useThree((s) => s.get);
   const invalidate = useThree((s) => s.invalidate);
+  const size = useThree((s) => s.size);
   const controlsRef = useRef(null);
+  const zoomRef = useRef(1);
   const body = useMemo(() => buildBody(scene), [scene]);
 
   useEffect(() => {
@@ -101,7 +104,7 @@ function Body({ selectedGroup, onSelect }) {
     const box = new THREE.Box3().setFromObject(body.group);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    const dist = (size.y / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.2;
+    const dist = (size.y / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.06;
     camera.position.set(center.x, center.y, center.z + dist);
     camera.near = dist / 50;
     camera.far = dist * 20;
@@ -125,6 +128,33 @@ function Body({ selectedGroup, onSelect }) {
     invalidate();
   }, [body, selectedGroup, invalidate]);
 
+  useEffect(() => {
+    const camera = getState().camera;
+    const target = selectedGroup ? SHEET_SCALE : 1;
+    let frame;
+    const step = () => {
+      zoomRef.current += (target - zoomRef.current) * 0.25;
+      if (Math.abs(target - zoomRef.current) < 0.003) zoomRef.current = target;
+      const s = zoomRef.current;
+      if (s === 1) {
+        camera.clearViewOffset();
+      } else {
+        camera.setViewOffset(
+          size.width * s,
+          size.height * s,
+          (-size.width * (1 - s)) / 2,
+          0,
+          size.width,
+          size.height
+        );
+      }
+      invalidate();
+      if (s !== target) frame = requestAnimationFrame(step);
+    };
+    step();
+    return () => cancelAnimationFrame(frame);
+  }, [selectedGroup, size, getState, invalidate]);
+
   useEffect(() => () => body.dispose(), [body]);
 
   const handleClick = (e) => {
@@ -137,7 +167,15 @@ function Body({ selectedGroup, onSelect }) {
   return (
     <>
       <primitive object={body.group} onClick={handleClick} />
-      <OrbitControls ref={controlsRef} makeDefault enablePan={false} enableDamping rotateSpeed={0.9} />
+      <OrbitControls
+        ref={controlsRef}
+        makeDefault
+        enablePan={false}
+        enableDamping
+        rotateSpeed={0.9}
+        minPolarAngle={Math.PI / 2}
+        maxPolarAngle={Math.PI / 2}
+      />
     </>
   );
 }
@@ -165,7 +203,7 @@ function Loader() {
 
 export default function BodyViewer({ selectedGroup, onSelect }) {
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+    <div style={{ position: "absolute", inset: 0 }}>
       <Canvas frameloop="demand" dpr={[1, 2]} camera={{ fov: 40, position: [0, 1, 4] }}>
         <ambientLight intensity={1.1} />
         <directionalLight position={[2, 4, 3]} intensity={1.6} />
