@@ -46,7 +46,7 @@ export default function Progress({ user }) {
   if (loading) return <p style={{ padding: 20 }}>読み込み中...</p>;
 
   return (
-    <div style={{ maxWidth: 420, margin: "0 auto", paddingBottom: 80, padding: 20 }}>
+    <div style={{ maxWidth: 420, margin: "0 auto", padding: "20px 20px 80px" }}>
       <h1 style={{ fontSize: 20 }}>進捗</h1>
 
       {exerciseOptions.length === 0 ? (

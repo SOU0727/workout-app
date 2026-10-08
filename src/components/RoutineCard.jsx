@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   collection,
+  deleteDoc,
   doc,
   orderBy,
   query,
@@ -11,7 +12,7 @@ import {
 import { db } from "../firebase";
 import { getDocsCacheFirst } from "../firestoreHelpers";
 
-export default function RoutineCard({ user, routine }) {
+export default function RoutineCard({ user, routine, onDeleted }) {
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -50,14 +51,33 @@ export default function RoutineCard({ user, routine }) {
     navigate(`/workout?sessionId=${sessionRef.id}`);
   };
 
+  const removeExercise = (ex) => {
+    deleteDoc(
+      doc(db, "users", user.uid, "routines", routine.id, "exercises", ex.id)
+    ).catch((err) => console.error(err));
+    setExercises((prev) => prev.filter((e) => e.id !== ex.id));
+  };
+
+  const deleteRoutine = () => {
+    if (!window.confirm(`ルーティン「${routine.name}」を削除しますか?`)) return;
+    const batch = writeBatch(db);
+    exercises.forEach((ex) =>
+      batch.delete(doc(db, "users", user.uid, "routines", routine.id, "exercises", ex.id))
+    );
+    batch.delete(doc(db, "users", user.uid, "routines", routine.id));
+    batch.commit().catch((err) => console.error(err));
+    onDeleted(routine.id);
+  };
+
   return (
     <div style={{ border: "1px solid #DADADA", borderRadius: 12, padding: 14, marginBottom: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <div style={{ fontWeight: 700 }}>{routine.name}</div>
         <button
           onClick={startWorkout}
           disabled={loading || starting}
           style={{
+            flexShrink: 0,
             background: "#4C5B75",
             color: "#fff",
             border: "none",
@@ -72,20 +92,76 @@ export default function RoutineCard({ user, routine }) {
         </button>
       </div>
 
-      {!loading && (
-        <div style={{ fontSize: 12.5, color: "#74747A", marginTop: 6 }}>
-          {exercises.length === 0
-            ? "種目未設定"
-            : exercises.map((ex) => ex.exerciseName).join("・")}
-        </div>
-      )}
+      {!loading &&
+        (exercises.length === 0 ? (
+          <div style={{ fontSize: 12.5, color: "#74747A", marginTop: 8 }}>種目未設定</div>
+        ) : (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+            {exercises.map((ex) => (
+              <span
+                key={ex.id}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  background: "#EDEEF0",
+                  borderRadius: 999,
+                  padding: "4px 6px 4px 10px",
+                  fontSize: 12.5,
+                  color: "#3C3F47",
+                }}
+              >
+                {ex.exerciseName}
+                <button
+                  onClick={() => removeExercise(ex)}
+                  aria-label={`${ex.exerciseName}を外す`}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: "0 4px",
+                    fontSize: 14,
+                    lineHeight: 1,
+                    color: "#74747A",
+                    cursor: "pointer",
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        ))}
 
-      <Link
-        to={`/exercises?type=routine&id=${routine.id}`}
-        style={{ fontSize: 12.5, color: "#4C5B75", fontWeight: 700, display: "inline-block", marginTop: 8 }}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 10,
+        }}
       >
-        + 種目を追加
-      </Link>
+        <Link
+          to={`/exercises?type=routine&id=${routine.id}`}
+          style={{ fontSize: 12.5, color: "#4C5B75", fontWeight: 700 }}
+        >
+          + 種目を追加
+        </Link>
+        <button
+          onClick={deleteRoutine}
+          disabled={loading}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 4,
+            fontSize: 12,
+            color: "#9A3B33",
+            cursor: "pointer",
+            opacity: loading ? 0.5 : 1,
+          }}
+        >
+          ルーティンを削除
+        </button>
+      </div>
     </div>
   );
 }
