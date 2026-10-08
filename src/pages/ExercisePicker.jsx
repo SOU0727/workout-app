@@ -1,6 +1,6 @@
 import { Component, Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { addDoc, collection, getDocs } from "firebase/firestore";
+import { Timestamp, addDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { dataGroupMap } from "../bodyGroups";
 
@@ -112,6 +112,7 @@ export default function ExercisePicker({ user }) {
   const [exercises, setExercises] = useState([]);
   const [lastUsedMap, setLastUsedMap] = useState({});
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [bodyGroup, setBodyGroup] = useState(null);
   const [mode, setMode] = useState(() => {
@@ -140,8 +141,10 @@ export default function ExercisePicker({ user }) {
   };
 
   const fetchExercises = async () => {
-    const presetsSnapshot = await getDocs(collection(db, "exercisePresets"));
-    const customSnapshot = await getDocs(customExercisesRef);
+    const [presetsSnapshot, customSnapshot] = await Promise.all([
+      getDocs(collection(db, "exercisePresets")),
+      getDocs(customExercisesRef),
+    ]);
     const presets = presetsSnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
     const custom = customSnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
     setExercises([...presets, ...custom]);
@@ -149,7 +152,11 @@ export default function ExercisePicker({ user }) {
 
   const fetchLastUsed = async () => {
     const setsRef = collection(db, "users", user.uid, "sets");
-    const snapshot = await getDocs(setsRef);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 120);
+    const snapshot = await getDocs(
+      query(setsRef, where("completedAt", ">=", Timestamp.fromDate(cutoff)))
+    );
     const map = {};
     snapshot.docs.forEach((d) => {
       const data = d.data();
@@ -164,8 +171,14 @@ export default function ExercisePicker({ user }) {
 
   useEffect(() => {
     const load = async () => {
-      await Promise.all([fetchExercises(), fetchLastUsed()]);
-      setLoading(false);
+      try {
+        await Promise.all([fetchExercises(), fetchLastUsed()]);
+      } catch (err) {
+        console.error(err);
+        setLoadError("読み込みに失敗しました。通信環境を確認してもう一度お試しください。");
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, []);
@@ -224,7 +237,36 @@ export default function ExercisePicker({ user }) {
     await fetchExercises();
   };
 
-  if (loading) return <p style={{ padding: 20 }}>読み込み中...</p>;
+  if (loading || loadError) {
+    return (
+      <div style={{ maxWidth: 420, margin: "0 auto", padding: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <BackButton onClick={() => navigate(-1)} />
+          <h1 style={{ fontSize: 20, margin: 0 }}>種目を選択</h1>
+        </div>
+        {loadError ? (
+          <p style={{ color: "#9A3B33", fontSize: 13, marginTop: 20 }}>
+            {loadError}
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                marginLeft: 8,
+                background: "none",
+                border: "1px solid #9A3B33",
+                borderRadius: 6,
+                padding: "4px 10px",
+                color: "#9A3B33",
+              }}
+            >
+              再読み込み
+            </button>
+          </p>
+        ) : (
+          <p style={{ color: "#74747A", marginTop: 20 }}>読み込み中...</p>
+        )}
+      </div>
+    );
+  }
 
   if (mode === "body") {
     const dataGroup = bodyGroup ? dataGroupMap[bodyGroup] : null;

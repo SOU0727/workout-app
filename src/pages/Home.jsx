@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { Timestamp, collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import BottomNav from "../components/BottomNav";
 import "./Home.css";
@@ -45,7 +45,12 @@ export default function Home({ user }) {
   useEffect(() => {
     const fetchSets = async () => {
       const setsRef = collection(db, "users", user.uid, "sets");
-      const snapshot = await getDocs(setsRef);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 120);
+      cutoff.setHours(0, 0, 0, 0);
+      const snapshot = await getDocs(
+        query(setsRef, where("completedAt", ">=", Timestamp.fromDate(cutoff)))
+      );
       const todayKey = new Date().toDateString();
       const dates = new Set();
       const todaySets = [];
