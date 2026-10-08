@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  addDoc,
   collection,
-  getDocs,
+  doc,
   orderBy,
   query,
   serverTimestamp,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { getDocsCacheFirst } from "../firestoreHelpers";
 
 export default function RoutineCard({ user, routine }) {
   const [exercises, setExercises] = useState([]);
@@ -17,61 +18,36 @@ export default function RoutineCard({ user, routine }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchExercises = async () => {
-      try {
-        const exercisesRef = collection(
-          db,
-          "users",
-          user.uid,
-          "routines",
-          routine.id,
-          "exercises"
-        );
-        const q = query(exercisesRef, orderBy("sortOrder"));
-        const snapshot = await getDocs(q);
-        setExercises(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchExercises();
-  }, [routine.id]);
+    const q = query(
+      collection(db, "users", user.uid, "routines", routine.id, "exercises"),
+      orderBy("sortOrder")
+    );
+    getDocsCacheFirst(q, (snapshot) => {
+      setExercises(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setLoading(false);
+    })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, [user.uid, routine.id]);
 
-  const startWorkout = async () => {
+  const startWorkout = () => {
     setStarting(true);
-    try {
-      const sessionsRef = collection(db, "users", user.uid, "sessions");
-      const newSession = await addDoc(sessionsRef, {
-        startedAt: serverTimestamp(),
-        endedAt: null,
-        routineId: routine.id,
+    const sessionRef = doc(collection(db, "users", user.uid, "sessions"));
+    const batch = writeBatch(db);
+    batch.set(sessionRef, {
+      startedAt: serverTimestamp(),
+      endedAt: null,
+      routineId: routine.id,
+    });
+    exercises.forEach((ex) => {
+      batch.set(doc(collection(sessionRef, "exercises")), {
+        exerciseId: ex.exerciseId,
+        exerciseName: ex.exerciseName,
+        sortOrder: ex.sortOrder,
       });
-
-      const sessionExercisesRef = collection(
-        db,
-        "users",
-        user.uid,
-        "sessions",
-        newSession.id,
-        "exercises"
-      );
-      await Promise.all(
-        exercises.map((ex) =>
-          addDoc(sessionExercisesRef, {
-            exerciseId: ex.exerciseId,
-            exerciseName: ex.exerciseName,
-            sortOrder: ex.sortOrder,
-          })
-        )
-      );
-
-      navigate(`/workout?sessionId=${newSession.id}`);
-    } catch (err) {
-      console.error(err);
-      setStarting(false);
-    }
+    });
+    batch.commit().catch((err) => console.error(err));
+    navigate(`/workout?sessionId=${sessionRef.id}`);
   };
 
   return (

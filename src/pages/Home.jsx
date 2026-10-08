@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Timestamp, collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import { Timestamp, collection, orderBy, query, where } from "firebase/firestore";
 import { db } from "../firebase";
+import { getDocsCacheFirst } from "../firestoreHelpers";
 import BottomNav from "../components/BottomNav";
 import "./Home.css";
 
@@ -43,14 +44,7 @@ export default function Home({ user }) {
   });
 
   useEffect(() => {
-    const fetchSets = async () => {
-      const setsRef = collection(db, "users", user.uid, "sets");
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - 120);
-      cutoff.setHours(0, 0, 0, 0);
-      const snapshot = await getDocs(
-        query(setsRef, where("completedAt", ">=", Timestamp.fromDate(cutoff)))
-      );
+    const applySets = (snapshot) => {
       const todayKey = new Date().toDateString();
       const dates = new Set();
       const todaySets = [];
@@ -76,17 +70,22 @@ export default function Home({ user }) {
       });
       setTodayGroups(groups);
     };
-    fetchSets();
+
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 120);
+    cutoff.setHours(0, 0, 0, 0);
+    const q = query(
+      collection(db, "users", user.uid, "sets"),
+      where("completedAt", ">=", Timestamp.fromDate(cutoff))
+    );
+    getDocsCacheFirst(q, applySets).catch((err) => console.error(err));
   }, [user.uid]);
 
   useEffect(() => {
-    const fetchRoutines = async () => {
-      const routinesRef = collection(db, "users", user.uid, "routines");
-      const q = query(routinesRef, orderBy("createdAt"));
-      const snapshot = await getDocs(q);
+    const q = query(collection(db, "users", user.uid, "routines"), orderBy("createdAt"));
+    getDocsCacheFirst(q, (snapshot) => {
       setRoutines(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })).slice(0, 3));
-    };
-    fetchRoutines();
+    }).catch((err) => console.error(err));
   }, [user.uid]);
 
   const streak = calculateStreak(sessionDates);

@@ -1,13 +1,16 @@
-import { Component, Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Component, Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Timestamp, addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { Timestamp, addDoc, collection, query, where } from "firebase/firestore";
 import { db } from "../firebase";
+import { getDocsCacheFirst } from "../firestoreHelpers";
 import { dataGroupMap } from "../bodyGroups";
 
 const BodyViewer = lazy(() => import("../components/BodyViewer"));
 
 const muscleGroupOrder = ["胸", "背中", "脚", "肩", "腕", "体幹"];
 const MODE_KEY = "pickerMode";
+
+const toList = (snapshot) => snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 
 class ViewerBoundary extends Component {
   state = { failed: false };
@@ -109,7 +112,9 @@ function ExerciseRow({ exercise, used, onSelect }) {
 }
 
 export default function ExercisePicker({ user }) {
-  const [exercises, setExercises] = useState([]);
+  const [presets, setPresets] = useState([]);
+  const [customs, setCustoms] = useState([]);
+  const loadedRef = useRef(false);
   const [lastUsedMap, setLastUsedMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -140,33 +145,35 @@ export default function ExercisePicker({ user }) {
     }
   };
 
-  const fetchExercises = async () => {
-    const [presetsSnapshot, customSnapshot] = await Promise.all([
-      getDocs(collection(db, "exercisePresets")),
-      getDocs(customExercisesRef),
+  const fetchExercises = () =>
+    Promise.all([
+      getDocsCacheFirst(collection(db, "exercisePresets"), (snapshot) => {
+        setPresets(toList(snapshot));
+        loadedRef.current = true;
+        setLoading(false);
+      }),
+      getDocsCacheFirst(customExercisesRef, (snapshot) => setCustoms(toList(snapshot))),
     ]);
-    const presets = presetsSnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-    const custom = customSnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-    setExercises([...presets, ...custom]);
-  };
 
   const fetchLastUsed = async () => {
     const setsRef = collection(db, "users", user.uid, "sets");
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 120);
-    const snapshot = await getDocs(
-      query(setsRef, where("completedAt", ">=", Timestamp.fromDate(cutoff)))
-    );
-    const map = {};
-    snapshot.docs.forEach((d) => {
-      const data = d.data();
-      if (!data.exerciseId || !data.completedAt) return;
-      const time = data.completedAt.toMillis();
-      if (!map[data.exerciseId] || time > map[data.exerciseId]) {
-        map[data.exerciseId] = time;
+    await getDocsCacheFirst(
+      query(setsRef, where("completedAt", ">=", Timestamp.fromDate(cutoff))),
+      (snapshot) => {
+        const map = {};
+        snapshot.docs.forEach((d) => {
+          const data = d.data();
+          if (!data.exerciseId || !data.completedAt) return;
+          const time = data.completedAt.toMillis();
+          if (!map[data.exerciseId] || time > map[data.exerciseId]) {
+            map[data.exerciseId] = time;
+          }
+        });
+        setLastUsedMap(map);
       }
-    });
-    setLastUsedMap(map);
+    );
   };
 
   useEffect(() => {
@@ -175,13 +182,17 @@ export default function ExercisePicker({ user }) {
         await Promise.all([fetchExercises(), fetchLastUsed()]);
       } catch (err) {
         console.error(err);
-        setLoadError("読み込みに失敗しました。通信環境を確認してもう一度お試しください。");
+        if (!loadedRef.current) {
+          setLoadError("読み込みに失敗しました。通信環境を確認してもう一度お試しください。");
+        }
       } finally {
         setLoading(false);
       }
     };
     load();
   }, []);
+
+  const exercises = useMemo(() => [...presets, ...customs], [presets, customs]);
 
   const groupedExercises = useMemo(() => {
     const groups = {};
@@ -209,14 +220,14 @@ export default function ExercisePicker({ user }) {
     (g) => groupedExercises[g]?.length > 0
   );
 
-  const addExercise = async (exercise) => {
+  const addExercise = (exercise) => {
     const parentCollection = type === "routine" ? "routines" : "sessions";
     const exercisesRef = collection(db, "users", user.uid, parentCollection, id, "exercises");
-    await addDoc(exercisesRef, {
+    addDoc(exercisesRef, {
       exerciseId: exercise.id,
       exerciseName: exercise.name,
       sortOrder: Date.now(),
-    });
+    }).catch((err) => console.error(err));
     if (type === "routine") {
       navigate("/routines");
     } else {

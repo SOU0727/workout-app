@@ -1,19 +1,31 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
-  addDoc,
   collection,
   doc,
   getDocs,
+  getDocsFromCache,
   limit,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import BottomNav from "../components/BottomNav";
 import ExerciseSetCard from "../components/ExerciseSetCard";
+
+const LOAD_ERROR = "読み込みに失敗しました。通信環境を確認してもう一度お試しください。";
+
+function findOpenToday(snapshot) {
+  const todayKey = new Date().toDateString();
+  return snapshot.docs.find((d) => {
+    const s = d.data({ serverTimestamps: "estimate" });
+    return s.startedAt && !s.endedAt && s.startedAt.toDate().toDateString() === todayKey;
+  });
+}
 
 export default function Workout({ user }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -33,35 +45,37 @@ export default function Workout({ user }) {
         let id = searchParams.get("sessionId");
         if (!id) {
           const sessionsRef = collection(db, "users", user.uid, "sessions");
-          const snapshot = await getDocs(
-            query(sessionsRef, orderBy("startedAt", "desc"), limit(20))
-          );
-          const todayKey = new Date().toDateString();
-          const openToday = snapshot.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
-            .filter(
-              (s) =>
-                s.startedAt &&
-                !s.endedAt &&
-                s.startedAt.toDate().toDateString() === todayKey
-            );
+          const sessionsQuery = query(sessionsRef, orderBy("startedAt", "desc"), limit(20));
 
-          if (openToday.length > 0) {
-            id = openToday[0].id;
+          let cached = null;
+          try {
+            cached = await getDocsFromCache(sessionsQuery);
+          } catch {
+            // キャッシュが使えない場合はサーバーで確認する
+          }
+          let found = cached ? findOpenToday(cached) : undefined;
+          if (!found && (!cached || cached.empty)) {
+            found = findOpenToday(await getDocs(sessionsQuery));
+          }
+
+          if (found) {
+            id = found.id;
           } else {
-            const newSession = await addDoc(sessionsRef, {
+            const newRef = doc(sessionsRef);
+            setDoc(newRef, {
               startedAt: serverTimestamp(),
               endedAt: null,
               routineId: null,
-            });
-            id = newSession.id;
+            }).catch((err) => console.error(err));
+            id = newRef.id;
+            setExercisesLoaded(true);
           }
           setSearchParams({ sessionId: id }, { replace: true });
         }
         setSessionId(id);
       } catch (err) {
         console.error(err);
-        setError("読み込みに失敗しました。通信環境を確認してもう一度お試しください。");
+        setError(LOAD_ERROR);
       }
     };
     ensureSession();
@@ -69,31 +83,28 @@ export default function Workout({ user }) {
 
   useEffect(() => {
     if (!sessionId) return;
-    const fetchSessionExercises = async () => {
-      try {
-        const exercisesRef = collection(
-          db,
-          "users",
-          user.uid,
-          "sessions",
-          sessionId,
-          "exercises"
-        );
-        const q = query(exercisesRef, orderBy("sortOrder"));
-        const snapshot = await getDocs(q);
+    const q = query(
+      collection(db, "users", user.uid, "sessions", sessionId, "exercises"),
+      orderBy("sortOrder")
+    );
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        if (snapshot.metadata.fromCache && snapshot.empty) return;
         setSessionExercises(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
         setExercisesLoaded(true);
-      } catch (err) {
+      },
+      (err) => {
         console.error(err);
-        setError("読み込みに失敗しました。通信環境を確認してもう一度お試しください。");
+        setError(LOAD_ERROR);
       }
-    };
-    fetchSessionExercises();
+    );
   }, [sessionId, user.uid]);
 
-  const finishSession = async () => {
-    const sessionRef = doc(db, "users", user.uid, "sessions", sessionId);
-    await updateDoc(sessionRef, { endedAt: serverTimestamp() });
+  const finishSession = () => {
+    updateDoc(doc(db, "users", user.uid, "sessions", sessionId), {
+      endedAt: serverTimestamp(),
+    }).catch((err) => console.error(err));
     navigate("/");
   };
 

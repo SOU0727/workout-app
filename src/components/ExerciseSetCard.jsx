@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {
   addDoc,
   collection,
-  getDocs,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
@@ -14,29 +14,26 @@ export default function ExerciseSetCard({ user, sessionId, sessionExercise }) {
   const [sets, setSets] = useState([]);
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
-  const [loading, setLoading] = useState(true);
 
-  const setsRef = collection(db, "users", user.uid, "sets");
-
-  const fetchSets = async () => {
+  useEffect(() => {
     const q = query(
-      setsRef,
+      collection(db, "users", user.uid, "sets"),
       where("sessionExerciseId", "==", sessionExercise.id),
       orderBy("setNumber")
     );
-    const snapshot = await getDocs(q);
-    setSets(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-    setLoading(false);
-  };
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        setSets(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+      },
+      (err) => console.error(err)
+    );
+  }, [user.uid, sessionExercise.id]);
 
-  useEffect(() => {
-    fetchSets();
-  }, [sessionExercise.id]);
-
-  const addSet = async (e) => {
+  const addSet = (e) => {
     e.preventDefault();
     if (!weight || !reps) return;
-    await addDoc(setsRef, {
+    addDoc(collection(db, "users", user.uid, "sets"), {
       sessionId,
       sessionExerciseId: sessionExercise.id,
       exerciseId: sessionExercise.exerciseId,
@@ -45,17 +42,16 @@ export default function ExerciseSetCard({ user, sessionId, sessionExercise }) {
       weight: Number(weight),
       reps: Number(reps),
       completedAt: serverTimestamp(),
-    });
+    }).catch((err) => console.error(err));
     setWeight("");
     setReps("");
-    fetchSets();
   };
 
   return (
     <div style={{ border: "1px solid #DADADA", borderRadius: 14, padding: 14, marginBottom: 10 }}>
       <div style={{ fontWeight: 700, marginBottom: 8 }}>{sessionExercise.exerciseName}</div>
 
-      {!loading && sets.length > 0 && (
+      {sets.length > 0 && (
         <ul style={{ listStyle: "none", padding: 0, marginBottom: 10 }}>
           {sets.map((s) => (
             <li key={s.id} style={{ fontSize: 13, color: "#565B66", padding: "4px 0" }}>
