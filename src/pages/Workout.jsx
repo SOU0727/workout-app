@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   collection,
@@ -13,13 +13,17 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import BottomNav from "../components/BottomNav";
 import ExerciseSetCard from "../components/ExerciseSetCard";
+import ExerciseEditList from "../components/ExerciseEditList";
+import { PAGE_PADDING } from "../layout";
 
 const LOAD_ERROR = "読み込みに失敗しました。通信環境を確認してもう一度お試しください。";
 const CURRENT_KEY = "currentSession";
+const UNDO_MS = 5000;
 
 function readCurrentSession(uid) {
   try {
@@ -68,10 +72,14 @@ export default function Workout({ user }) {
   const [exercisesLoaded, setExercisesLoaded] = useState(false);
   const [error, setError] = useState("");
   const [log, setLog] = useState([]);
+  const [editMode, setEditMode] = useState(false);
+  const [hiddenIds, setHiddenIds] = useState([]);
+  const [undoName, setUndoName] = useState(null);
   const initializedRef = useRef(false);
   const focusedRef = useRef(false);
   const debugRef = useRef(false);
   const startRef = useRef(0);
+  const pendingRef = useRef(null);
   const navigate = useNavigate();
   const showDebug = searchParams.has("debug");
 
@@ -183,6 +191,92 @@ export default function Workout({ user }) {
     );
   }, [sessionId, user.uid, mark]);
 
+  const visibleExercises = useMemo(
+    () => sessionExercises.filter((e) => !hiddenIds.includes(e.id)),
+    [sessionExercises, hiddenIds]
+  );
+
+  const setsFor = (exerciseDocId) =>
+    sessionSets
+      .filter((s) => s.sessionExerciseId === exerciseDocId)
+      .sort((a, b) => a.setNumber - b.setNumber);
+
+  const editItems = useMemo(
+    () =>
+      visibleExercises.map((e) => ({
+        id: e.id,
+        name: e.exerciseName,
+        setCount: sessionSets.filter((s) => s.sessionExerciseId === e.id).length,
+      })),
+    [visibleExercises, sessionSets]
+  );
+
+  const commitDelete = useCallback(
+    (pending) => {
+      const batch = writeBatch(db);
+      batch.delete(
+        doc(db, "users", user.uid, "sessions", pending.sessionId, "exercises", pending.exerciseDocId)
+      );
+      pending.setIds.forEach((id) => batch.delete(doc(db, "users", user.uid, "sets", id)));
+      batch.commit().catch((err) => console.error(err));
+    },
+    [user.uid]
+  );
+
+  const flushPending = useCallback(() => {
+    const pending = pendingRef.current;
+    if (!pending) return;
+    clearTimeout(pending.timer);
+    pendingRef.current = null;
+    commitDelete(pending);
+    setUndoName(null);
+  }, [commitDelete]);
+
+  const flushRef = useRef(flushPending);
+  useEffect(() => {
+    flushRef.current = flushPending;
+  });
+  useEffect(() => {
+    const flush = () => flushRef.current();
+    return flush;
+  }, []);
+
+  const deleteExercise = (exerciseDocId) => {
+    const target = sessionExercises.find((e) => e.id === exerciseDocId);
+    if (!target) return;
+    flushPending();
+    const pending = {
+      sessionId,
+      exerciseDocId,
+      name: target.exerciseName,
+      setIds: sessionSets.filter((s) => s.sessionExerciseId === exerciseDocId).map((s) => s.id),
+    };
+    pending.timer = setTimeout(() => flushRef.current(), UNDO_MS);
+    pendingRef.current = pending;
+    setHiddenIds((prev) => [...prev, exerciseDocId]);
+    setUndoName(target.exerciseName);
+  };
+
+  const undoDelete = () => {
+    const pending = pendingRef.current;
+    if (!pending) return;
+    clearTimeout(pending.timer);
+    pendingRef.current = null;
+    setHiddenIds((prev) => prev.filter((id) => id !== pending.exerciseDocId));
+    setUndoName(null);
+  };
+
+  const reorderExercises = (orderedIds) => {
+    const batch = writeBatch(db);
+    orderedIds.forEach((exerciseDocId, index) => {
+      batch.update(
+        doc(db, "users", user.uid, "sessions", sessionId, "exercises", exerciseDocId),
+        { sortOrder: index }
+      );
+    });
+    batch.commit().catch((err) => console.error(err));
+  };
+
   const focusId = searchParams.get("focus");
   useEffect(() => {
     if (!focusId || sessionExercises.length === 0 || focusedRef.current) return;
@@ -194,6 +288,7 @@ export default function Workout({ user }) {
   }, [focusId, sessionExercises]);
 
   const finishSession = () => {
+    flushPending();
     clearCurrentSession();
     updateDoc(doc(db, "users", user.uid, "sessions", sessionId), {
       endedAt: serverTimestamp(),
@@ -203,7 +298,7 @@ export default function Workout({ user }) {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 420, margin: "0 auto", padding: "20px 20px 80px" }}>
+      <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
         <p style={{ color: "#9A3B33", fontSize: 13 }}>
           {error}
           <button
@@ -225,67 +320,91 @@ export default function Workout({ user }) {
     );
   }
 
-  const setsFor = (exerciseId) =>
-    sessionSets
-      .filter((s) => s.sessionExerciseId === exerciseId)
-      .sort((a, b) => a.setNumber - b.setNumber);
-
   return (
-    <div style={{ maxWidth: 420, margin: "0 auto", padding: "20px 20px 80px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <h1 style={{ fontSize: 20 }}>今日のワークアウト</h1>
-        <button
-          onClick={finishSession}
-          disabled={!sessionId}
-          style={{
-            background: "#4C5B75",
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            padding: "8px 16px",
-            opacity: sessionId ? 1 : 0.5,
-          }}
-        >
-          終了
-        </button>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <button
+            onClick={() => setEditMode((v) => !v)}
+            disabled={!sessionId}
+            style={{
+              background: editMode ? "#4C5B75" : "#fff",
+              color: editMode ? "#fff" : "#4C5B75",
+              border: "1px solid #4C5B75",
+              borderRadius: 10,
+              padding: "8px 14px",
+              fontWeight: 600,
+              opacity: sessionId ? 1 : 0.5,
+            }}
+          >
+            {editMode ? "完了" : "編集"}
+          </button>
+          <button
+            onClick={finishSession}
+            disabled={!sessionId}
+            style={{
+              background: "#4C5B75",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "8px 16px",
+              opacity: sessionId ? 1 : 0.5,
+            }}
+          >
+            終了
+          </button>
+        </div>
       </div>
 
       {sessionId && (
         <>
-          {sessionExercises.length === 0 && (
+          {visibleExercises.length === 0 && (
             <p style={{ color: "#74747A", marginTop: 20 }}>
               {exercisesLoaded ? "まだ種目が追加されていません。" : "読み込み中..."}
             </p>
           )}
 
-          <div style={{ marginTop: 16 }}>
-            {sessionExercises.map((ex) => (
-              <ExerciseSetCard
-                key={ex.id}
-                user={user}
-                sessionId={sessionId}
-                sessionExercise={ex}
-                sets={setsFor(ex.id)}
+          {editMode ? (
+            <div style={{ marginTop: 12 }}>
+              <ExerciseEditList
+                items={editItems}
+                onReorder={reorderExercises}
+                onDelete={deleteExercise}
               />
-            ))}
-          </div>
+            </div>
+          ) : (
+            <>
+              <div style={{ marginTop: 16 }}>
+                {visibleExercises.map((ex) => (
+                  <ExerciseSetCard
+                    key={ex.id}
+                    user={user}
+                    sessionId={sessionId}
+                    sessionExercise={ex}
+                    sets={setsFor(ex.id)}
+                  />
+                ))}
+              </div>
 
-          <Link
-            to={`/exercises?type=session&id=${sessionId}`}
-            style={{
-              display: "block",
-              textAlign: "center",
-              border: "1.5px dashed #B3B3B3",
-              borderRadius: 14,
-              padding: 15,
-              color: "#4C5B75",
-              fontWeight: 700,
-              marginTop: 12,
-              textDecoration: "none",
-            }}
-          >
-            + 種目を追加
-          </Link>
+              <Link
+                to={`/exercises?type=session&id=${sessionId}`}
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  border: "1.5px dashed #B3B3B3",
+                  borderRadius: 14,
+                  padding: 15,
+                  color: "#4C5B75",
+                  fontWeight: 700,
+                  marginTop: 12,
+                  textDecoration: "none",
+                }}
+              >
+                + 種目を追加
+              </Link>
+            </>
+          )}
         </>
       )}
 
@@ -293,6 +412,45 @@ export default function Workout({ user }) {
         <pre style={{ marginTop: 20, fontSize: 11, color: "#74747A", whiteSpace: "pre-wrap" }}>
           {["mounted +0ms", ...log].join("\n")}
         </pre>
+      )}
+
+      {undoName && (
+        <div
+          style={{
+            position: "fixed",
+            left: "50%",
+            transform: "translateX(-50%)",
+            bottom: "calc(96px + env(safe-area-inset-bottom, 0px))",
+            maxWidth: "calc(100% - 32px)",
+            background: "#2B2F38",
+            color: "#fff",
+            borderRadius: 12,
+            padding: "10px 14px",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            fontSize: 13,
+            zIndex: 30,
+            boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
+          }}
+        >
+          <span>「{undoName}」を削除しました</span>
+          <button
+            onClick={undoDelete}
+            style={{
+              flexShrink: 0,
+              background: "none",
+              border: "none",
+              padding: 0,
+              color: "#FFB454",
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: "pointer",
+            }}
+          >
+            元に戻す
+          </button>
+        </div>
       )}
 
       <BottomNav />

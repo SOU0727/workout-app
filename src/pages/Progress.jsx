@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "../firebase";
 import BottomNav from "../components/BottomNav";
+import { PAGE_PADDING } from "../layout";
 
 export default function Progress({ user }) {
   const [allSets, setAllSets] = useState([]);
@@ -46,7 +47,7 @@ export default function Progress({ user }) {
   if (loading) return <p style={{ padding: 20 }}>読み込み中...</p>;
 
   return (
-    <div style={{ maxWidth: 420, margin: "0 auto", padding: "20px 20px 80px" }}>
+    <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
       <h1 style={{ fontSize: 20 }}>進捗</h1>
 
       {exerciseOptions.length === 0 ? (

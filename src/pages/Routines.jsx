@@ -3,6 +3,7 @@ import { addDoc, collection, orderBy, query, serverTimestamp } from "firebase/fi
 import { db } from "../firebase";
 import { getDocsCacheFirst } from "../firestoreHelpers";
 import BottomNav from "../components/BottomNav";
+import { PAGE_PADDING } from "../layout";
 import RoutineCard from "../components/RoutineCard";
 
 export default function Routines({ user }) {
@@ -40,7 +41,7 @@ export default function Routines({ user }) {
   };
 
   return (
-    <div style={{ maxWidth: 420, margin: "0 auto", padding: "20px 20px 80px" }}>
+    <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
       <h1 style={{ fontSize: 20 }}>ルーティン</h1>
 
       <form onSubmit={createRoutine} style={{ display: "flex", gap: 8, margin: "16px 0" }}>

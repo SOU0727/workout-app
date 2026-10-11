@@ -1,7 +1,7 @@
 .home {
   max-width: 420px;
   margin: 0 auto;
-  padding-bottom: 80px;
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
   color: #18181A;
   background: #F5F5F5;

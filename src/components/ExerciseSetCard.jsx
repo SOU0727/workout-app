@@ -6,7 +6,6 @@ import {
   doc,
   serverTimestamp,
   updateDoc,
-  writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -77,47 +76,12 @@ export default function ExerciseSetCard({ user, sessionId, sessionExercise, sets
     setEditingId(null);
   };
 
-  const removeExercise = () => {
-    const note = sets.length > 0 ? `と、記録した${sets.length}セット` : "";
-    if (!window.confirm(`「${sessionExercise.exerciseName}」${note}を削除しますか?`)) return;
-    const batch = writeBatch(db);
-    batch.delete(
-      doc(db, "users", user.uid, "sessions", sessionId, "exercises", sessionExercise.id)
-    );
-    sets.forEach((s) => batch.delete(doc(db, "users", user.uid, "sets", s.id)));
-    batch.commit().catch((err) => console.error(err));
-  };
-
   return (
     <div
       data-exercise-id={sessionExercise.exerciseId}
       style={{ border: "1px solid #DADADA", borderRadius: 14, padding: 14, marginBottom: 10 }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 8,
-        }}
-      >
-        <div style={{ fontWeight: 700 }}>{sessionExercise.exerciseName}</div>
-        <button
-          onClick={removeExercise}
-          style={{
-            flexShrink: 0,
-            background: "none",
-            border: "none",
-            padding: 4,
-            fontSize: 12,
-            color: "#9A3B33",
-            cursor: "pointer",
-          }}
-        >
-          種目を削除
-        </button>
-      </div>
+      <div style={{ fontWeight: 700, marginBottom: 8 }}>{sessionExercise.exerciseName}</div>
 
       {sets.length > 0 && (
         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 10px" }}>

@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Workout from "./pages/Workout";
 import ExercisePicker from "./pages/ExercisePicker";
+import History from "./pages/History";
+import HistoryDay from "./pages/HistoryDay";
+import HistoryExercise from "./pages/HistoryExercise";
 import Progress from "./pages/Progress";
 import Routines from "./pages/Routines";
 import Settings from "./pages/Settings";
@@ -32,6 +35,9 @@ function App() {
         <Route path="/" element={<Home user={user} />} />
         <Route path="/workout" element={<Workout user={user} />} />
         <Route path="/exercises" element={<ExercisePicker user={user} />} />
+        <Route path="/history" element={<History user={user} />} />
+        <Route path="/history/day/:key" element={<HistoryDay user={user} />} />
+        <Route path="/history/exercise/:exerciseId" element={<HistoryExercise user={user} />} />
         <Route path="/progress" element={<Progress user={user} />} />
         <Route path="/routines" element={<Routines user={user} />} />
         <Route path="/settings" element={<Settings user={user} />} />
