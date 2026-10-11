@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   collection,
@@ -18,7 +18,7 @@ import {
 import { db } from "../firebase";
 import BottomNav from "../components/BottomNav";
 import ExerciseSetCard from "../components/ExerciseSetCard";
-import ExerciseEditList from "../components/ExerciseEditList";
+const ExerciseEditList = lazy(() => import("../components/ExerciseEditList"));
 import { PAGE_PADDING } from "../layout";
 
 const LOAD_ERROR = "読み込みに失敗しました。通信環境を確認してもう一度お試しください。";
@@ -367,11 +367,13 @@ export default function Workout({ user }) {
 
           {editMode ? (
             <div style={{ marginTop: 12 }}>
-              <ExerciseEditList
-                items={editItems}
-                onReorder={reorderExercises}
-                onDelete={deleteExercise}
-              />
+              <Suspense fallback={null}>
+                <ExerciseEditList
+                  items={editItems}
+                  onReorder={reorderExercises}
+                  onDelete={deleteExercise}
+                />
+              </Suspense>
             </div>
           ) : (
             <>

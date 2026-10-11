@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import { StatusMessage } from "../components/HistoryParts";
 import { PAGE_PADDING, card } from "../layout";
-import { formatDay, useAllSets } from "../historyUtils";
+import { formatDay } from "../historyUtils";
+import { useSets } from "../setsContext";
 
 const MODE_KEY = "historyMode";
 const SCROLL_KEY = "historyScroll";
@@ -33,8 +34,8 @@ function uniqueNames(sets) {
   return names;
 }
 
-export default function History({ user }) {
-  const { sets, loading, error } = useAllSets(user.uid);
+export default function History() {
+  const { sets, loading, error } = useSets();
   const [mode, setMode] = useState(() => readStore(MODE_KEY, "date"));
 
   const changeMode = (next) => {

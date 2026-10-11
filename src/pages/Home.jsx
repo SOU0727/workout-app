@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Timestamp, collection, orderBy, query, where } from "firebase/firestore";
+import { collection, orderBy, query } from "firebase/firestore";
 import { db } from "../firebase";
 import { getDocsCacheFirst } from "../firestoreHelpers";
 import BottomNav from "../components/BottomNav";
+import { dayKey } from "../historyUtils";
+import { useSets } from "../setsContext";
 import "./Home.css";
 
 const dayLabels = ["月", "火", "水", "木", "金", "土", "日"];
@@ -21,10 +23,10 @@ function calculateStreak(dateSet) {
   let streak = 0;
   const cursor = new Date();
   cursor.setHours(0, 0, 0, 0);
-  if (!dateSet.has(cursor.toDateString())) {
+  if (!dateSet.has(dayKey(cursor))) {
     cursor.setDate(cursor.getDate() - 1);
   }
-  while (dateSet.has(cursor.toDateString())) {
+  while (dateSet.has(dayKey(cursor))) {
     streak++;
     cursor.setDate(cursor.getDate() - 1);
   }
@@ -32,9 +34,7 @@ function calculateStreak(dateSet) {
 }
 
 export default function Home({ user }) {
-  const [sessionDates, setSessionDates] = useState(new Set());
-  const [todayGroups, setTodayGroups] = useState([]);
-  const [todaySessionId, setTodaySessionId] = useState(null);
+  const { sets: allSets } = useSets();
   const [routines, setRoutines] = useState([]);
 
   const monday = getMonday(new Date());
@@ -44,45 +44,26 @@ export default function Home({ user }) {
     return { label, date: d };
   });
 
-  useEffect(() => {
-    const applySets = (snapshot) => {
-      const todayKey = new Date().toDateString();
-      const dates = new Set();
-      const todaySets = [];
-      snapshot.docs.forEach((d) => {
-        const data = d.data();
-        if (data.completedAt) {
-          const key = data.completedAt.toDate().toDateString();
-          dates.add(key);
-          if (key === todayKey) todaySets.push(data);
-        }
-      });
-      setSessionDates(dates);
-
-      todaySets.sort((a, b) => a.completedAt.toMillis() - b.completedAt.toMillis());
-      const groups = [];
-      todaySets.forEach((s) => {
-        let g = groups.find((x) => x.exerciseId === s.exerciseId);
-        if (!g) {
-          g = { exerciseId: s.exerciseId, name: s.exerciseName, sessionId: s.sessionId, sets: [] };
-          groups.push(g);
-        }
-        g.sessionId = s.sessionId;
-        g.sets.push(s);
-      });
-      setTodayGroups(groups);
-      setTodaySessionId(todaySets.length > 0 ? todaySets[todaySets.length - 1].sessionId : null);
-    };
-
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 120);
-    cutoff.setHours(0, 0, 0, 0);
-    const q = query(
-      collection(db, "users", user.uid, "sets"),
-      where("completedAt", ">=", Timestamp.fromDate(cutoff))
-    );
-    getDocsCacheFirst(q, applySets).catch((err) => console.error(err));
-  }, [user.uid]);
+  // 全セットは App 全体で共有している購読から取る(画面ごとの再取得はしない)
+  const { sessionDates, todayGroups, todaySessionId } = useMemo(() => {
+    const todayKey = dayKey(new Date());
+    const dates = new Set();
+    const groups = [];
+    let lastTodaySessionId = null;
+    allSets.forEach((s) => {
+      dates.add(s.key);
+      if (s.key !== todayKey) return;
+      let g = groups.find((x) => x.exerciseId === s.exerciseId);
+      if (!g) {
+        g = { exerciseId: s.exerciseId, name: s.exerciseName, sessionId: s.sessionId, sets: [] };
+        groups.push(g);
+      }
+      g.sessionId = s.sessionId;
+      g.sets.push(s);
+      lastTodaySessionId = s.sessionId;
+    });
+    return { sessionDates: dates, todayGroups: groups, todaySessionId: lastTodaySessionId };
+  }, [allSets]);
 
   useEffect(() => {
     const q = query(collection(db, "users", user.uid, "routines"), orderBy("createdAt"));
@@ -209,7 +190,7 @@ export default function Home({ user }) {
               <div className="week-day" key={day.label}>
                 <span className="week-day-label">{day.label}</span>
                 <span
-                  className={`week-dot ${sessionDates.has(day.date.toDateString()) ? "done" : ""}`}
+                  className={`week-dot ${sessionDates.has(dayKey(day.date)) ? "done" : ""}`}
                 ></span>
               </div>
             ))}

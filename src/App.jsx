@@ -1,18 +1,19 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import Auth from "./Auth";
+import SetsProvider from "./SetsProvider";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Workout from "./pages/Workout";
-import ExercisePicker from "./pages/ExercisePicker";
-import History from "./pages/History";
-import HistoryDay from "./pages/HistoryDay";
-import HistoryExercise from "./pages/HistoryExercise";
-import Progress from "./pages/Progress";
-import Routines from "./pages/Routines";
-import Settings from "./pages/Settings";
-import Seed from "./pages/Seed";
+const ExercisePicker = lazy(() => import("./pages/ExercisePicker"));
+const History = lazy(() => import("./pages/History"));
+const HistoryDay = lazy(() => import("./pages/HistoryDay"));
+const HistoryExercise = lazy(() => import("./pages/HistoryExercise"));
+const Progress = lazy(() => import("./pages/Progress"));
+const Routines = lazy(() => import("./pages/Routines"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Seed = lazy(() => import("./pages/Seed"));
 
 function App() {
   const [user, setUser] = useState(null);
@@ -30,7 +31,9 @@ function App() {
   if (!user) return <Auth />;
 
   return (
+    <SetsProvider uid={user.uid}>
     <BrowserRouter>
+      <Suspense fallback={null}>
       <Routes>
         <Route path="/" element={<Home user={user} />} />
         <Route path="/workout" element={<Workout user={user} />} />
@@ -43,7 +46,9 @@ function App() {
         <Route path="/settings" element={<Settings user={user} />} />
         <Route path="/seed" element={<Seed />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
+    </SetsProvider>
   );
 }
 

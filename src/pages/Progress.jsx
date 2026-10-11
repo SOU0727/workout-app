@@ -1,24 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import { db } from "../firebase";
+import { useMemo, useState } from "react";
 import BottomNav from "../components/BottomNav";
 import { PAGE_PADDING } from "../layout";
+import { useSets } from "../setsContext";
 
-export default function Progress({ user }) {
-  const [allSets, setAllSets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedExerciseId, setSelectedExerciseId] = useState("");
-
-  useEffect(() => {
-    const fetchSets = async () => {
-      const setsRef = collection(db, "users", user.uid, "sets");
-      const q = query(setsRef, orderBy("completedAt"));
-      const snapshot = await getDocs(q);
-      setAllSets(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLoading(false);
-    };
-    fetchSets();
-  }, [user.uid]);
+export default function Progress() {
+  const { sets: allSets, loading } = useSets();
+  const [pickedExerciseId, setPickedExerciseId] = useState("");
 
   const exerciseOptions = useMemo(() => {
     const map = new Map();
@@ -30,11 +17,7 @@ export default function Progress({ user }) {
     return Array.from(map, ([id, name]) => ({ id, name }));
   }, [allSets]);
 
-  useEffect(() => {
-    if (!selectedExerciseId && exerciseOptions.length > 0) {
-      setSelectedExerciseId(exerciseOptions[0].id);
-    }
-  }, [exerciseOptions, selectedExerciseId]);
+  const selectedExerciseId = pickedExerciseId || exerciseOptions[0]?.id || "";
 
   const exerciseSets = useMemo(
     () => allSets.filter((s) => s.exerciseId === selectedExerciseId),
@@ -58,7 +41,7 @@ export default function Progress({ user }) {
         <>
           <select
             value={selectedExerciseId}
-            onChange={(e) => setSelectedExerciseId(e.target.value)}
+            onChange={(e) => setPickedExerciseId(e.target.value)}
             style={{ padding: 10, border: "1px solid #DADADA", borderRadius: 8, marginTop: 16, marginBottom: 20, width: "100%" }}
           >
             {exerciseOptions.map((ex) => (

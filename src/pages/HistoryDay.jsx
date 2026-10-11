@@ -2,15 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { collection, orderBy, query } from "firebase/firestore";
 import { db } from "../firebase";
-import { getDocsCacheFirst } from "../firestoreHelpers";
+import { getDocsPreferCache } from "../firestoreHelpers";
 import BottomNav from "../components/BottomNav";
 import { BackLink, StatusMessage } from "../components/HistoryParts";
 import { PAGE_PADDING, card } from "../layout";
-import { formatDay, useAllSets } from "../historyUtils";
+import { formatDay } from "../historyUtils";
+import { useSets } from "../setsContext";
 
 export default function HistoryDay({ user }) {
   const { key } = useParams();
-  const { sets, loading, error } = useAllSets(user.uid);
+  const { sets, loading, error } = useSets();
   // sessionExerciseId → 並び順(その日に保存された順序)
   const [orderMap, setOrderMap] = useState({});
 
@@ -33,7 +34,7 @@ export default function HistoryDay({ user }) {
         collection(db, "users", user.uid, "sessions", sessionId, "exercises"),
         orderBy("sortOrder")
       );
-      getDocsCacheFirst(q, (snapshot) => {
+      getDocsPreferCache(q, (snapshot) => {
         if (cancelled) return;
         setOrderMap((prev) => {
           const next = { ...prev };

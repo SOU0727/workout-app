@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Timestamp, addDoc, collection, query, where } from "firebase/firestore";
+import { addDoc, collection } from "firebase/firestore";
 import { db } from "../firebase";
-import { getDocsCacheFirst } from "../firestoreHelpers";
+import { getDocsCacheFirst, getDocsPreferCache } from "../firestoreHelpers";
+import { useSets } from "../setsContext";
 import { dataGroupMap } from "../bodyGroups";
 import BodyPicker from "../components/BodyPicker";
 import { BackButton, ExerciseRow } from "../components/PickerParts";
@@ -42,7 +43,7 @@ export default function ExercisePicker({ user }) {
   const [presets, setPresets] = useState([]);
   const [customs, setCustoms] = useState([]);
   const loadedRef = useRef(false);
-  const [lastUsedMap, setLastUsedMap] = useState({});
+  const { sets: allSets } = useSets();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -74,7 +75,7 @@ export default function ExercisePicker({ user }) {
 
   const fetchExercises = () =>
     Promise.all([
-      getDocsCacheFirst(collection(db, "exercisePresets"), (snapshot) => {
+      getDocsPreferCache(collection(db, "exercisePresets"), (snapshot) => {
         setPresets(toList(snapshot));
         loadedRef.current = true;
         setLoading(false);
@@ -82,31 +83,10 @@ export default function ExercisePicker({ user }) {
       getDocsCacheFirst(customExercisesRef, (snapshot) => setCustoms(toList(snapshot))),
     ]);
 
-  const fetchLastUsed = async () => {
-    const setsRef = collection(db, "users", user.uid, "sets");
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 120);
-    await getDocsCacheFirst(
-      query(setsRef, where("completedAt", ">=", Timestamp.fromDate(cutoff))),
-      (snapshot) => {
-        const map = {};
-        snapshot.docs.forEach((d) => {
-          const data = d.data();
-          if (!data.exerciseId || !data.completedAt) return;
-          const time = data.completedAt.toMillis();
-          if (!map[data.exerciseId] || time > map[data.exerciseId]) {
-            map[data.exerciseId] = time;
-          }
-        });
-        setLastUsedMap(map);
-      }
-    );
-  };
-
   useEffect(() => {
     const load = async () => {
       try {
-        await Promise.all([fetchExercises(), fetchLastUsed()]);
+        await fetchExercises();
       } catch (err) {
         console.error(err);
         if (!loadedRef.current) {
@@ -120,6 +100,17 @@ export default function ExercisePicker({ user }) {
   }, []);
 
   const exercises = useMemo(() => [...presets, ...customs], [presets, customs]);
+
+  // 種目ごとの最終使用時刻(共有している全セットから算出)
+  const lastUsedMap = useMemo(() => {
+    const map = {};
+    allSets.forEach((s) => {
+      if (!s.exerciseId) return;
+      const time = s.date.getTime();
+      if (!map[s.exerciseId] || time > map[s.exerciseId]) map[s.exerciseId] = time;
+    });
+    return map;
+  }, [allSets]);
 
   const groupedExercises = useMemo(() => {
     const groups = {};

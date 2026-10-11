@@ -3,15 +3,16 @@ import { useParams } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import { BackLink, StatusMessage } from "../components/HistoryParts";
 import { PAGE_PADDING, card } from "../layout";
-import { dayKey, formatDay, useAllSets } from "../historyUtils";
+import { dayKey, formatDay } from "../historyUtils";
+import { useSets } from "../setsContext";
 
 function summary(list) {
   return list.map((s) => `${s.weight}kg × ${s.reps}回`).join("、");
 }
 
-export default function HistoryExercise({ user }) {
+export default function HistoryExercise() {
   const { exerciseId } = useParams();
-  const { sets, loading, error } = useAllSets(user.uid);
+  const { sets, loading, error } = useSets();
 
   useEffect(() => {
     window.scrollTo(0, 0);
