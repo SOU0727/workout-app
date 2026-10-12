@@ -454,7 +454,7 @@ export default function Workout({ user }) {
             position: "fixed",
             left: "50%",
             transform: "translateX(-50%)",
-            bottom: "calc(96px + env(safe-area-inset-bottom, 0px))",
+            bottom: "calc(104px + env(safe-area-inset-bottom, 0px))",
             maxWidth: "calc(100% - 32px)",
             background: "#2B2F38",
             color: "#fff",
