@@ -73,14 +73,14 @@ export default function HistoryDay({ user }) {
       <h1 style={{ fontSize: 20, marginTop: 4 }}>{formatDay(key)}</h1>
 
       <StatusMessage loading={loading} error={error} />
-      {empty && <p style={{ color: "#74747A", marginTop: 20 }}>この日の記録はありません</p>}
+      {empty && <p style={{ color: "var(--text-muted)", marginTop: 20 }}>この日の記録はありません</p>}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
         {groups.map((g) => (
           <div key={g.id} style={card}>
             <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{g.name}</div>
             {g.sets.map((s, i) => (
-              <div key={s.id} style={{ fontSize: 13.5, color: "#565B66", padding: "3px 0" }}>
+              <div key={s.id} style={{ fontSize: 13.5, color: "var(--text-sub)", padding: "3px 0" }}>
                 {i + 1}セット目: {s.weight}kg × {s.reps}回
               </div>
             ))}

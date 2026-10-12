@@ -12,9 +12,11 @@ import { db } from "../firebase";
 const inputStyle = {
   flex: "1 1 0",
   minWidth: 0,
-  padding: 8,
-  border: "1px solid #DADADA",
-  borderRadius: 8,
+  padding: "10px 12px",
+  border: "1px solid var(--border)",
+  borderRadius: "var(--radius-control)",
+  background: "var(--surface-2)",
+  color: "var(--text)",
 };
 
 const smallButton = (background, color, border = "none") => ({
@@ -22,8 +24,8 @@ const smallButton = (background, color, border = "none") => ({
   background,
   color,
   border,
-  borderRadius: 8,
-  padding: "7px 10px",
+  borderRadius: 999,
+  padding: "8px 12px",
   fontSize: 12.5,
   fontWeight: 600,
   cursor: "pointer",
@@ -160,7 +162,14 @@ export default function ExerciseSetCard({
   return (
     <div
       data-exercise-id={sessionExercise.exerciseId}
-      style={{ position: "relative", marginBottom: 10, borderRadius: 14, overflow: "hidden" }}
+      style={{
+        position: "relative",
+        marginBottom: 14,
+        borderRadius: "var(--radius-card)",
+        overflow: "hidden",
+        background: "var(--surface)",
+        boxShadow: "var(--shadow-card)",
+      }}
     >
       {offset > 0 && (
         <button
@@ -173,8 +182,8 @@ export default function ExerciseSetCard({
             bottom: 0,
             width: DELETE_WIDTH,
             border: "none",
-            background: "#C8453B",
-            color: "#fff",
+            background: "var(--danger-fill)",
+            color: "var(--on-primary)",
             fontWeight: 700,
             fontSize: 14,
             cursor: "pointer",
@@ -206,10 +215,8 @@ export default function ExerciseSetCard({
         }}
         style={{
           position: "relative",
-          border: "1px solid #DADADA",
-          borderRadius: 14,
-          padding: 14,
-          background: "#F5F5F5",
+          padding: 18,
+          background: "var(--surface)",
           touchAction: "pan-y",
           transform: `translateX(${-offset}px)`,
           transition: dragX === null ? "transform 0.2s ease" : "none",
@@ -218,7 +225,8 @@ export default function ExerciseSetCard({
       <div
         style={{
           fontWeight: 700,
-          marginBottom: 8,
+          fontSize: 17,
+          marginBottom: 10,
           userSelect: "none",
           WebkitUserSelect: "none",
           WebkitTouchCallout: "none",
@@ -247,19 +255,19 @@ export default function ExerciseSetCard({
                     onChange={(e) => setEditReps(e.target.value)}
                     style={inputStyle}
                   />
-                  <button onClick={() => saveEdit(s)} style={smallButton("#4C5B75", "#fff")}>
+                  <button onClick={() => saveEdit(s)} style={smallButton("var(--primary)", "#fff")}>
                     保存
                   </button>
                   <button
                     onClick={() => deleteSet(s)}
-                    style={smallButton("none", "#9A3B33", "1px solid #9A3B33")}
+                    style={smallButton("none", "var(--danger)", "1px solid var(--danger)")}
                   >
                     削除
                   </button>
                   <button
                     onClick={() => setEditingId(null)}
                     aria-label="編集をやめる"
-                    style={smallButton("#EDEEF0", "#565B66")}
+                    style={smallButton("var(--surface-2)", "var(--text-sub)")}
                   >
                     ×
                   </button>
@@ -271,7 +279,7 @@ export default function ExerciseSetCard({
                     justifyContent: "space-between",
                     alignItems: "center",
                     fontSize: 13,
-                    color: "#565B66",
+                    color: "var(--text-sub)",
                   }}
                 >
                   <span>
@@ -284,7 +292,7 @@ export default function ExerciseSetCard({
                       border: "none",
                       padding: 4,
                       fontSize: 12,
-                      color: "#4C5B75",
+                      color: "var(--primary)",
                       cursor: "pointer",
                     }}
                   >
@@ -314,13 +322,16 @@ export default function ExerciseSetCard({
         />
         <button
           type="submit"
+          className="press"
           style={{
             flexShrink: 0,
-            background: "#4C5B75",
-            color: "#fff",
+            background: "var(--primary)",
+            color: "var(--on-primary)",
             border: "none",
-            borderRadius: 8,
-            padding: "8px 14px",
+            borderRadius: 999,
+            padding: "10px 20px",
+            fontWeight: 700,
+            cursor: "pointer",
           }}
         >
           記録

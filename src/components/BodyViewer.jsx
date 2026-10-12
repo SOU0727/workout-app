@@ -8,8 +8,8 @@ import { classifyMesh } from "../bodyGroups";
 const MODEL_URL = "/models/muscular.glb";
 const NEUTRAL = "__neutral";
 const NEUTRAL_COLOR = "#B8BCC4";
-const TINT_COLOR = "#A8B3C7";
-const ACCENT_COLOR = "#4C5B75";
+const TINT_COLOR = "#A9BDE8";
+const ACCENT_COLOR = "#0053E2";
 const SHEET_SCALE = 0.58;
 
 function bakeGeometry(mesh) {
@@ -280,7 +280,7 @@ function Loader() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#74747A",
+        color: "var(--text-muted)",
         fontSize: 13,
         pointerEvents: "none",
       }}

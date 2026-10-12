@@ -95,7 +95,7 @@ export default function History() {
       <div
         style={{
           display: "flex",
-          background: "#EDEEF0",
+          background: "var(--surface-2)",
           borderRadius: 10,
           padding: 3,
           margin: "14px 0 16px",
@@ -115,9 +115,9 @@ export default function History() {
               padding: "9px 0",
               fontWeight: 600,
               fontSize: 14,
-              background: mode === value ? "#fff" : "transparent",
-              color: mode === value ? "#4C5B75" : "#74747A",
-              boxShadow: mode === value ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
+              background: mode === value ? "var(--surface)" : "transparent",
+              color: mode === value ? "var(--primary)" : "var(--text-muted)",
+              boxShadow: mode === value ? "var(--shadow-card)" : "none",
             }}
           >
             {label}
@@ -126,7 +126,7 @@ export default function History() {
       </div>
 
       <StatusMessage loading={loading} error={error} />
-      {empty && <p style={{ color: "#74747A", marginTop: 20 }}>まだ記録がありません</p>}
+      {empty && <p style={{ color: "var(--text-muted)", marginTop: 20 }}>まだ記録がありません</p>}
 
       {mode === "date" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -136,7 +136,7 @@ export default function History() {
             return (
               <Link key={d.key} to={`/history/day/${d.key}`} style={card}>
                 <div style={{ fontWeight: 700, fontSize: 15 }}>{formatDay(d.key)}</div>
-                <div style={{ fontSize: 13, color: "#565B66", marginTop: 4 }}>
+                <div style={{ fontSize: 13, color: "var(--text-sub)", marginTop: 4 }}>
                   {shown}
                   {rest > 0 ? ` 他${rest}種目` : ""}
                 </div>
@@ -151,7 +151,7 @@ export default function History() {
           {exercises.map((e) => (
             <Link key={e.id} to={`/history/exercise/${e.id}`} style={card}>
               <div style={{ fontWeight: 700, fontSize: 15 }}>{e.name}</div>
-              <div style={{ fontSize: 12.5, color: "#74747A", marginTop: 4 }}>
+              <div style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 4 }}>
                 {e.dayCount}日記録 ・ 最終 {formatDay(e.last)}
               </div>
             </Link>

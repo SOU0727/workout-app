@@ -306,17 +306,17 @@ export default function Workout({ user }) {
   if (error) {
     return (
       <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
-        <p style={{ color: "#9A3B33", fontSize: 13 }}>
+        <p style={{ color: "var(--danger)", fontSize: 13 }}>
           {error}
           <button
             onClick={() => window.location.reload()}
             style={{
               marginLeft: 8,
               background: "none",
-              border: "1px solid #9A3B33",
+              border: "1px solid var(--danger)",
               borderRadius: 6,
               padding: "4px 10px",
-              color: "#9A3B33",
+              color: "var(--danger)",
             }}
           >
             再読み込み
@@ -341,17 +341,18 @@ export default function Workout({ user }) {
       style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-        <h1 style={{ fontSize: 20 }}>今日のワークアウト</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>今日のワークアウト</h1>
         {editMode ? (
           <button
             onClick={() => setEditMode(false)}
+            className="press"
             style={{
               flexShrink: 0,
-              background: "#4C5B75",
-              color: "#fff",
+              background: "var(--primary)",
+              color: "var(--on-primary)",
               border: "none",
-              borderRadius: 10,
-              padding: "8px 18px",
+              borderRadius: 999,
+              padding: "10px 20px",
               fontWeight: 700,
             }}
           >
@@ -361,13 +362,15 @@ export default function Workout({ user }) {
           <button
             onClick={finishSession}
             disabled={!sessionId}
+            className="press"
             style={{
               flexShrink: 0,
-              background: "#4C5B75",
-              color: "#fff",
+              background: "var(--primary)",
+              color: "var(--on-primary)",
               border: "none",
-              borderRadius: 10,
-              padding: "8px 16px",
+              borderRadius: 999,
+              padding: "10px 20px",
+              fontWeight: 700,
               opacity: sessionId ? 1 : 0.5,
             }}
           >
@@ -379,7 +382,7 @@ export default function Workout({ user }) {
       {sessionId && (
         <>
           {visibleExercises.length === 0 && (
-            <p style={{ color: "#74747A", marginTop: 20 }}>
+            <p style={{ color: "var(--text-muted)", marginTop: 20 }}>
               {exercisesLoaded ? "まだ種目が追加されていません。" : "読み込み中..."}
             </p>
           )}
@@ -420,10 +423,10 @@ export default function Workout({ user }) {
                 style={{
                   display: "block",
                   textAlign: "center",
-                  border: "1.5px dashed #B3B3B3",
-                  borderRadius: 14,
-                  padding: 15,
-                  color: "#4C5B75",
+                  border: "1.5px dashed var(--border-strong)",
+                  borderRadius: "var(--radius-card)",
+                  padding: 16,
+                  color: "var(--primary)",
                   fontWeight: 700,
                   marginTop: 12,
                   textDecoration: "none",
@@ -433,7 +436,7 @@ export default function Workout({ user }) {
               </Link>
 
               {visibleExercises.length > 0 && (
-                <p style={{ textAlign: "center", fontSize: 12, color: "#8A8A90", marginTop: 14 }}>
+                <p style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)", marginTop: 14 }}>
                   左にスワイプで削除、長押しで並べ替えができます
                 </p>
               )}
@@ -443,7 +446,7 @@ export default function Workout({ user }) {
       )}
 
       {showDebug && (
-        <pre style={{ marginTop: 20, fontSize: 11, color: "#74747A", whiteSpace: "pre-wrap" }}>
+        <pre style={{ marginTop: 20, fontSize: 11, color: "var(--text-muted)", whiteSpace: "pre-wrap" }}>
           {["mounted +0ms", ...log].join("\n")}
         </pre>
       )}
@@ -457,7 +460,7 @@ export default function Workout({ user }) {
             bottom: "calc(104px + env(safe-area-inset-bottom, 0px))",
             maxWidth: "calc(100% - 32px)",
             background: "#2B2F38",
-            color: "#fff",
+            color: "var(--on-primary)",
             borderRadius: 12,
             padding: "10px 14px",
             display: "flex",

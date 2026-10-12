@@ -70,7 +70,7 @@ export default function RoutineCard({ user, routine, onDeleted }) {
   };
 
   return (
-    <div style={{ border: "1px solid #DADADA", borderRadius: 12, padding: 14, marginBottom: 10 }}>
+    <div style={{ border: "1px solid var(--border)", borderRadius: 12, padding: 14, marginBottom: 10 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <div style={{ fontWeight: 700 }}>{routine.name}</div>
         <button
@@ -78,8 +78,8 @@ export default function RoutineCard({ user, routine, onDeleted }) {
           disabled={loading || starting}
           style={{
             flexShrink: 0,
-            background: "#4C5B75",
-            color: "#fff",
+            background: "var(--primary)",
+            color: "var(--on-primary)",
             border: "none",
             borderRadius: 999,
             padding: "6px 14px",
@@ -94,7 +94,7 @@ export default function RoutineCard({ user, routine, onDeleted }) {
 
       {!loading &&
         (exercises.length === 0 ? (
-          <div style={{ fontSize: 12.5, color: "#74747A", marginTop: 8 }}>種目未設定</div>
+          <div style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 8 }}>種目未設定</div>
         ) : (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
             {exercises.map((ex) => (
@@ -104,11 +104,11 @@ export default function RoutineCard({ user, routine, onDeleted }) {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 4,
-                  background: "#EDEEF0",
+                  background: "var(--surface-2)",
                   borderRadius: 999,
                   padding: "4px 6px 4px 10px",
                   fontSize: 12.5,
-                  color: "#3C3F47",
+                  color: "var(--text)",
                 }}
               >
                 {ex.exerciseName}
@@ -121,7 +121,7 @@ export default function RoutineCard({ user, routine, onDeleted }) {
                     padding: "0 4px",
                     fontSize: 14,
                     lineHeight: 1,
-                    color: "#74747A",
+                    color: "var(--text-muted)",
                     cursor: "pointer",
                   }}
                 >
@@ -142,7 +142,7 @@ export default function RoutineCard({ user, routine, onDeleted }) {
       >
         <Link
           to={`/exercises?type=routine&id=${routine.id}`}
-          style={{ fontSize: 12.5, color: "#4C5B75", fontWeight: 700 }}
+          style={{ fontSize: 12.5, color: "var(--primary)", fontWeight: 700 }}
         >
           + 種目を追加
         </Link>
@@ -154,7 +154,7 @@ export default function RoutineCard({ user, routine, onDeleted }) {
             border: "none",
             padding: 4,
             fontSize: 12,
-            color: "#9A3B33",
+            color: "var(--danger)",
             cursor: "pointer",
             opacity: loading ? 0.5 : 1,
           }}

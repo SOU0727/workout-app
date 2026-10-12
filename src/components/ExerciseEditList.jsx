@@ -44,11 +44,11 @@ function Row({ item, index, onDelete }) {
           display: "flex",
           alignItems: "center",
           gap: 12,
-          padding: "10px 14px 10px 10px",
-          background: "#fff",
-          border: isDragging ? "1px solid #4C5B75" : "1px solid #DADADA",
-          borderRadius: 12,
-          boxShadow: isDragging ? "0 10px 24px rgba(0,0,0,0.22)" : "none",
+          padding: "12px 16px 12px 12px",
+          background: "var(--surface)",
+          border: isDragging ? "1px solid var(--primary)" : "1px solid transparent",
+          borderRadius: 20,
+          boxShadow: isDragging ? "var(--shadow-float)" : "var(--shadow-card)",
           transform: isDragging ? "scale(1.03)" : undefined,
           animationDelay: `${-(index % 4) * 0.09}s`,
         }}
@@ -64,7 +64,7 @@ function Row({ item, index, onDelete }) {
             height: 30,
             borderRadius: 15,
             border: "none",
-            background: "#C8453B",
+            background: "var(--danger-fill)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -78,7 +78,7 @@ function Row({ item, index, onDelete }) {
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 600, fontSize: 14.5 }}>{item.name}</div>
-          <div style={{ fontSize: 12, color: "#74747A", marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
             {item.setCount > 0 ? `${item.setCount}セット記録済み` : "記録なし"}
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function ExerciseEditList({ items, onReorder, onDelete }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12.5, color: "#74747A", margin: "4px 0 12px" }}>
+      <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "4px 0 12px" }}>
         行を触ったままドラッグで並べ替え、左の「−」で削除できます。終わったら「完了」を押してください。
       </p>
       <DndContext

@@ -86,7 +86,7 @@ export default function Home({ user }) {
       <header className="home-header">
         <div className="home-greeting-row">
           <div className="home-date">{today}</div>
-          <Link to="/settings" style={{ display: "flex", flexShrink: 0, color: "#74747A" }}>
+          <Link to="/settings" style={{ display: "flex", flexShrink: 0, color: "var(--text-muted)" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3"></circle>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -127,19 +127,19 @@ export default function Home({ user }) {
             {todayGroups.length > 0 && (
               <Link
                 to={`/workout?sessionId=${todaySessionId}`}
-                style={{ fontSize: 12.5, color: "#4C5B75", fontWeight: 700 }}
+                style={{ fontSize: 12.5, color: "var(--primary)", fontWeight: 700 }}
               >
                 続きを入力 ›
               </Link>
             )}
           </div>
           {todayGroups.length === 0 ? (
-            <p style={{ fontSize: 12.5, color: "#74747A" }}>今日はまだ記録がありません。</p>
+            <p style={{ fontSize: 12.5, color: "var(--text-muted)" }}>今日はまだ記録がありません。</p>
           ) : (
             <div
               style={{
-                background: "#fff",
-                border: "1px solid #DADADA",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
                 borderRadius: 14,
                 padding: "4px 14px",
               }}
@@ -154,13 +154,13 @@ export default function Home({ user }) {
                     justifyContent: "space-between",
                     gap: 8,
                     padding: "10px 0",
-                    borderTop: i === 0 ? "none" : "1px solid #EDEDEE",
+                    borderTop: i === 0 ? "none" : "1px solid var(--divider)",
                     color: "inherit",
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 700 }}>{g.name}</div>
-                    <div style={{ fontSize: 12.5, color: "#74747A", marginTop: 3 }}>
+                    <div style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 3 }}>
                       {g.sets.map((s) => `${s.weight}kg × ${s.reps}回`).join("  ・  ")}
                     </div>
                   </div>
@@ -200,7 +200,7 @@ export default function Home({ user }) {
         <div>
           <div className="section-title">最近のルーティン</div>
           {routines.length === 0 ? (
-            <p style={{ fontSize: 12.5, color: "#74747A" }}>まだルーティンがありません。</p>
+            <p style={{ fontSize: 12.5, color: "var(--text-muted)" }}>まだルーティンがありません。</p>
           ) : (
             <div className="routine-list">
               {routines.map((r) => (

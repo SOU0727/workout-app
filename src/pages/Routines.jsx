@@ -54,7 +54,7 @@ export default function Routines({ user }) {
             flex: "1 1 0",
             minWidth: 0,
             padding: 10,
-            border: "1px solid #DADADA",
+            border: "1px solid var(--border)",
             borderRadius: 8,
           }}
         />
@@ -62,8 +62,8 @@ export default function Routines({ user }) {
           type="submit"
           style={{
             flexShrink: 0,
-            background: "#4C5B75",
-            color: "#fff",
+            background: "var(--primary)",
+            color: "var(--on-primary)",
             border: "none",
             borderRadius: 8,
             padding: "0 16px",
@@ -73,20 +73,20 @@ export default function Routines({ user }) {
         </button>
       </form>
 
-      {loading && <p style={{ color: "#74747A" }}>読み込み中...</p>}
+      {loading && <p style={{ color: "var(--text-muted)" }}>読み込み中...</p>}
 
       {error && (
-        <p style={{ color: "#9A3B33", fontSize: 13 }}>
+        <p style={{ color: "var(--danger)", fontSize: 13 }}>
           {error}
           <button
             onClick={() => window.location.reload()}
             style={{
               marginLeft: 8,
               background: "none",
-              border: "1px solid #9A3B33",
+              border: "1px solid var(--danger)",
               borderRadius: 6,
               padding: "4px 10px",
-              color: "#9A3B33",
+              color: "var(--danger)",
             }}
           >
             再読み込み
@@ -95,7 +95,7 @@ export default function Routines({ user }) {
       )}
 
       {!loading && !error && routines.length === 0 && (
-        <p style={{ color: "#74747A" }}>まだルーティンがありません。</p>
+        <p style={{ color: "var(--text-muted)" }}>まだルーティンがありません。</p>
       )}
 
       <div>

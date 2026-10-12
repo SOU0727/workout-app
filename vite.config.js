@@ -28,8 +28,8 @@ export default defineConfig({
         name: 'Muscle Log',
         short_name: 'Muscle Log',
         description: 'ワークアウトの記録・進捗・ルーティンを管理するアプリ',
-        theme_color: '#4C5B75',
-        background_color: '#F5F5F5',
+        theme_color: '#EFF2FA',
+        background_color: '#EFF2FA',
         display: 'standalone',
         start_url: '/',
         icons: [

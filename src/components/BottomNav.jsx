@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 
-const ACCENT = "#4C5B75";
+const ACCENT = "var(--primary)";
 
 const iconPaths = {
   home: <path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />,
@@ -68,11 +68,11 @@ export default function BottomNav() {
           maxWidth: 388,
           padding: 5,
           borderRadius: 32,
-          background: "rgba(255, 255, 255, 0.72)",
+          background: "var(--glass)",
           backdropFilter: "blur(22px) saturate(180%)",
           WebkitBackdropFilter: "blur(22px) saturate(180%)",
-          border: "1px solid rgba(255, 255, 255, 0.75)",
-          boxShadow: "0 10px 30px rgba(24, 24, 26, 0.16), 0 1px 0 rgba(255, 255, 255, 0.9) inset",
+          border: "1px solid var(--glass-border)",
+          boxShadow: "var(--shadow-float)",
         }}
       >
         {navItems.map((item) => (
@@ -91,8 +91,8 @@ export default function BottomNav() {
               gap: 3,
               borderRadius: 26,
               textDecoration: "none",
-              background: isActive ? "rgba(76, 91, 117, 0.14)" : "transparent",
-              color: isActive ? ACCENT : "#55555C",
+              background: isActive ? "var(--primary-soft)" : "transparent",
+              color: isActive ? ACCENT : "var(--text-sub)",
               fontWeight: isActive ? 700 : 500,
               fontSize: 10.5,
               transition: "background 0.2s ease, color 0.2s ease",

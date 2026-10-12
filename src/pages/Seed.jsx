@@ -70,14 +70,14 @@ export default function Seed() {
   return (
     <div style={{ maxWidth: 420, margin: "0 auto", padding: 20 }}>
       <h1 style={{ fontSize: 20 }}>種目プリセットの一括追加(一時的なページ)</h1>
-      <p style={{ color: "#74747A", fontSize: 13 }}>
+      <p style={{ color: "var(--text-muted)", fontSize: 13 }}>
         このボタンは1回だけ押してください。何度も押すと同じ種目が重複して追加されます。
       </p>
       <button
         onClick={runSeed}
         style={{
-          background: "#4C5B75",
-          color: "#fff",
+          background: "var(--primary)",
+          color: "var(--on-primary)",
           border: "none",
           borderRadius: 10,
           padding: 14,
@@ -89,17 +89,17 @@ export default function Seed() {
         プリセットを追加する
       </button>
 
-      <hr style={{ margin: "24px 0", border: "none", borderTop: "1px solid #DADADA" }} />
+      <hr style={{ margin: "24px 0", border: "none", borderTop: "1px solid var(--border)" }} />
 
       <h2 style={{ fontSize: 16 }}>重複データの削除</h2>
-      <p style={{ color: "#74747A", fontSize: 13 }}>
+      <p style={{ color: "var(--text-muted)", fontSize: 13 }}>
         同じ名前の種目が複数登録されてしまった場合、重複分だけ削除します(それぞれ最初の1件は残します)。
       </p>
       <button
         onClick={runDedupe}
         style={{
-          background: "#9A3B33",
-          color: "#fff",
+          background: "var(--danger)",
+          color: "var(--on-primary)",
           border: "none",
           borderRadius: 10,
           padding: 14,

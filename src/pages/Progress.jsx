@@ -34,7 +34,7 @@ export default function Progress() {
       <h1 style={{ fontSize: 20 }}>進捗</h1>
 
       {exerciseOptions.length === 0 ? (
-        <p style={{ color: "#74747A", marginTop: 20 }}>
+        <p style={{ color: "var(--text-muted)", marginTop: 20 }}>
           まだ記録がありません。ワークアウトを記録すると、ここに進捗が表示されます。
         </p>
       ) : (
@@ -42,7 +42,7 @@ export default function Progress() {
           <select
             value={selectedExerciseId}
             onChange={(e) => setPickedExerciseId(e.target.value)}
-            style={{ padding: 10, border: "1px solid #DADADA", borderRadius: 8, marginTop: 16, marginBottom: 20, width: "100%" }}
+            style={{ padding: 10, border: "1px solid var(--border)", borderRadius: 8, marginTop: 16, marginBottom: 20, width: "100%" }}
           >
             {exerciseOptions.map((ex) => (
               <option key={ex.id} value={ex.id}>
@@ -52,13 +52,13 @@ export default function Progress() {
           </select>
 
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <div style={{ flex: 1, background: "#fff", border: "1px solid #DADADA", borderRadius: 12, padding: 12 }}>
-              <div style={{ fontSize: 11, color: "#74747A" }}>自己ベスト(重量)</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#4C5B75" }}>{maxWeight}kg</div>
+            <div style={{ flex: 1, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 12 }}>
+              <div style={{ fontSize: 11, color: "var(--text-muted)" }}>自己ベスト(重量)</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--primary)" }}>{maxWeight}kg</div>
             </div>
-            <div style={{ flex: 1, background: "#fff", border: "1px solid #DADADA", borderRadius: 12, padding: 12 }}>
-              <div style={{ fontSize: 11, color: "#74747A" }}>自己ベスト(回数)</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#4C5B75" }}>{maxReps}回</div>
+            <div style={{ flex: 1, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 12 }}>
+              <div style={{ fontSize: 11, color: "var(--text-muted)" }}>自己ベスト(回数)</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--primary)" }}>{maxReps}回</div>
             </div>
           </div>
 
@@ -73,7 +73,7 @@ export default function Progress() {
 
 function WeightChart({ sets }) {
   if (sets.length === 0) {
-    return <p style={{ color: "#74747A" }}>この種目の記録がまだありません。</p>;
+    return <p style={{ color: "var(--text-muted)" }}>この種目の記録がまだありません。</p>;
   }
 
   const weights = sets.map((s) => s.weight);
@@ -94,19 +94,19 @@ function WeightChart({ sets }) {
   const pointsAttr = points.map((p) => `${p.x},${p.y}`).join(" ");
 
   return (
-    <div style={{ background: "#fff", border: "1px solid #DADADA", borderRadius: 14, padding: 16 }}>
+    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 16 }}>
       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>重量の推移(kg)</div>
       <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height}>
         <polyline
           points={pointsAttr}
           fill="none"
-          stroke="#4C5B75"
+          stroke="var(--primary)"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         {points.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#4C5B75" />
+          <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="var(--primary)" />
         ))}
       </svg>
     </div>

@@ -17,7 +17,7 @@ class ViewerBoundary extends Component {
   render() {
     if (this.state.failed) {
       return (
-        <p style={{ padding: 20, color: "#74747A", fontSize: 13 }}>
+        <p style={{ padding: 20, color: "var(--text-muted)", fontSize: 13 }}>
           この端末では3D表示を読み込めませんでした。右上の「リスト」に切り替えてください。
         </p>
       );
@@ -47,7 +47,7 @@ export default function BodyPicker({
         transform: "translateX(-50%)",
         width: "100%",
         maxWidth: 480,
-        background: "#fff",
+        background: "var(--surface)",
         display: "flex",
         flexDirection: "column",
       }}
@@ -59,7 +59,7 @@ export default function BodyPicker({
           alignItems: "center",
           justifyContent: "space-between",
           padding: "14px 20px",
-          borderBottom: "1px solid #EDEDEE",
+          borderBottom: "1px solid var(--divider)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -72,7 +72,7 @@ export default function BodyPicker({
       <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
         <ViewerBoundary>
           <Suspense
-            fallback={<p style={{ padding: 20, color: "#74747A", fontSize: 13 }}>読み込み中...</p>}
+            fallback={<p style={{ padding: 20, color: "var(--text-muted)", fontSize: 13 }}>読み込み中...</p>}
           >
             <BodyViewer selectedGroup={bodyGroup} onSelect={onBodyGroupChange} />
           </Suspense>
@@ -88,12 +88,12 @@ export default function BodyPicker({
               margin: 0,
               padding: "5px 12px",
               borderRadius: 999,
-              background: "rgba(255,255,255,0.88)",
+              background: "var(--glass)",
               width: "max-content",
               maxWidth: "calc(100% - 24px)",
               textAlign: "center",
               fontSize: 12,
-              color: "#74747A",
+              color: "var(--text-muted)",
               pointerEvents: "none",
             }}
           >
@@ -110,7 +110,7 @@ export default function BodyPicker({
               bottom: 0,
               maxHeight: "42%",
               overflowY: "auto",
-              background: "#fff",
+              background: "var(--surface)",
               borderRadius: "18px 18px 0 0",
               boxShadow: "0 -4px 16px rgba(0,0,0,0.12)",
               padding: "14px 16px 20px",
@@ -127,7 +127,7 @@ export default function BodyPicker({
               <div style={{ fontSize: 15, fontWeight: 700 }}>
                 {bodyGroup}
                 {dataGroup && dataGroup !== bodyGroup && (
-                  <span style={{ fontSize: 12, fontWeight: 400, color: "#74747A" }}>
+                  <span style={{ fontSize: 12, fontWeight: 400, color: "var(--text-muted)" }}>
                     {" "}
                     ({dataGroup}の種目)
                   </span>
@@ -146,7 +146,7 @@ export default function BodyPicker({
             </div>
 
             {list.length === 0 ? (
-              <p style={{ fontSize: 13, color: "#74747A", margin: 0 }}>
+              <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
                 この部位の種目はまだ登録されていません。
               </p>
             ) : (

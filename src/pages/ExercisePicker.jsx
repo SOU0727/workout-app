@@ -24,15 +24,15 @@ function ModeToggle({ mode, onChange }) {
         fontSize: 12.5,
         fontWeight: 700,
         cursor: "pointer",
-        background: mode === value ? "#4C5B75" : "transparent",
-        color: mode === value ? "#fff" : "#74747A",
+        background: mode === value ? "var(--primary)" : "transparent",
+        color: mode === value ? "var(--on-primary)" : "var(--text-muted)",
       }}
     >
       {label}
     </button>
   );
   return (
-    <div style={{ display: "flex", background: "#EDEEF0", borderRadius: 999, padding: 3 }}>
+    <div style={{ display: "flex", background: "var(--surface-2)", borderRadius: 999, padding: 3 }}>
       {tab("list", "リスト")}
       {tab("body", "人体")}
     </div>
@@ -174,24 +174,24 @@ export default function ExercisePicker({ user }) {
           <h1 style={{ fontSize: 20, margin: 0 }}>種目を選択</h1>
         </div>
         {loadError ? (
-          <p style={{ color: "#9A3B33", fontSize: 13, marginTop: 20 }}>
+          <p style={{ color: "var(--danger)", fontSize: 13, marginTop: 20 }}>
             {loadError}
             <button
               onClick={() => window.location.reload()}
               style={{
                 marginLeft: 8,
                 background: "none",
-                border: "1px solid #9A3B33",
+                border: "1px solid var(--danger)",
                 borderRadius: 6,
                 padding: "4px 10px",
-                color: "#9A3B33",
+                color: "var(--danger)",
               }}
             >
               再読み込み
             </button>
           </p>
         ) : (
-          <p style={{ color: "#74747A", marginTop: 20 }}>読み込み中...</p>
+          <p style={{ color: "var(--text-muted)", marginTop: 20 }}>読み込み中...</p>
         )}
       </div>
     );
@@ -232,16 +232,16 @@ export default function ExercisePicker({ user }) {
               onClick={() => setSelectedGroup(g)}
               style={{
                 padding: "20px 10px",
-                border: "1px solid #DADADA",
+                border: "1px solid var(--border)",
                 borderRadius: 14,
-                background: "#fff",
+                background: "var(--surface)",
                 fontSize: 15,
                 fontWeight: 700,
                 cursor: "pointer",
               }}
             >
               {g}
-              <div style={{ fontSize: 11, color: "#74747A", fontWeight: 400, marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 400, marginTop: 4 }}>
                 {groupedExercises[g].length}種目
               </div>
             </button>
@@ -271,8 +271,8 @@ export default function ExercisePicker({ user }) {
         ))}
       </ul>
 
-      <div style={{ border: "1.5px dashed #B3B3B3", borderRadius: 12, padding: 14, marginTop: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: "#4C5B75" }}>
+      <div style={{ border: "1.5px dashed var(--border-strong)", borderRadius: 12, padding: 14, marginTop: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: "var(--primary)" }}>
           種目を新規作成
         </div>
         <form onSubmit={createCustomExercise} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -281,18 +281,18 @@ export default function ExercisePicker({ user }) {
             placeholder="種目名(例: ケーブルフライ)"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            style={{ padding: 10, border: "1px solid #DADADA", borderRadius: 8 }}
+            style={{ padding: 10, border: "1px solid var(--border)", borderRadius: 8 }}
           />
           <input
             type="text"
             placeholder="部位(例: 胸)"
             value={newMuscle}
             onChange={(e) => setNewMuscle(e.target.value)}
-            style={{ padding: 10, border: "1px solid #DADADA", borderRadius: 8 }}
+            style={{ padding: 10, border: "1px solid var(--border)", borderRadius: 8 }}
           />
           <button
             type="submit"
-            style={{ background: "#4C5B75", color: "#fff", border: "none", borderRadius: 8, padding: 10 }}
+            style={{ background: "var(--primary)", color: "var(--on-primary)", border: "none", borderRadius: 8, padding: 10 }}
           >
             この種目を追加する
           </button>

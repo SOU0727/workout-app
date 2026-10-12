@@ -47,7 +47,7 @@ export default function Auth() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ padding: 14, border: "1px solid #DADADA", borderRadius: 10, fontSize: 16 }}
+          style={{ padding: 14, border: "1px solid var(--border)", borderRadius: 10, fontSize: 16 }}
         />
         <input
           type="password"
@@ -55,14 +55,14 @@ export default function Auth() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ padding: 14, border: "1px solid #DADADA", borderRadius: 10, fontSize: 16 }}
+          style={{ padding: 14, border: "1px solid var(--border)", borderRadius: 10, fontSize: 16 }}
         />
-        {error && <p style={{ color: "#9A3B33", fontSize: 13 }}>{error}</p>}
+        {error && <p style={{ color: "var(--danger)", fontSize: 13 }}>{error}</p>}
         <button
           type="submit"
           style={{
-            background: "#4C5B75",
-            color: "#fff",
+            background: "var(--primary)",
+            color: "var(--on-primary)",
             border: "none",
             borderRadius: 10,
             padding: 14,
@@ -75,7 +75,7 @@ export default function Auth() {
       </form>
       <button
         onClick={() => setIsSignup(!isSignup)}
-        style={{ marginTop: 16, background: "none", border: "none", color: "#4C5B75", fontSize: 14 }}
+        style={{ marginTop: 16, background: "none", border: "none", color: "var(--primary)", fontSize: 14 }}
       >
         {isSignup ? "ログインはこちら" : "アカウントを作る"}
       </button>

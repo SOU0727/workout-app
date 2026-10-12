@@ -2,10 +2,10 @@ export const PAGE_PADDING = "20px 20px calc(100px + env(safe-area-inset-bottom, 
 
 export const card = {
   display: "block",
-  background: "#fff",
-  border: "1px solid #DADADA",
-  borderRadius: 14,
-  padding: "14px 16px",
+  background: "var(--surface)",
+  borderRadius: "var(--radius-card)",
+  boxShadow: "var(--shadow-card)",
+  padding: "16px 18px",
   color: "inherit",
   textDecoration: "none",
 };
