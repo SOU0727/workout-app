@@ -9,13 +9,14 @@ import RoutineCard from "../components/RoutineCard";
 export default function Routines({ user }) {
   const [routines, setRoutines] = useState([]);
   const [name, setName] = useState("");
+  const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const routinesRef = collection(db, "users", user.uid, "routines");
 
   const fetchRoutines = () =>
-    getDocsCacheFirst(query(routinesRef, orderBy("createdAt")), (snapshot) => {
+    getDocsCacheFirst(query(routinesRef, orderBy("createdAt", "desc")), (snapshot) => {
       setRoutines(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
       setLoading(false);
     });
@@ -37,6 +38,7 @@ export default function Routines({ user }) {
       createdAt: serverTimestamp(),
     }).catch((err) => console.error(err));
     setName("");
+    setAdding(false);
     fetchRoutines().catch((err) => console.error(err));
   };
 
@@ -44,22 +46,80 @@ export default function Routines({ user }) {
     <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
       <h1 style={{ fontSize: 24, fontWeight: 800 }}>ルーティン</h1>
 
-      <form onSubmit={createRoutine} style={{ display: "flex", gap: 8, margin: "16px 0" }}>
-        <input
-          type="text"
-          placeholder="例: 胸の日"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ ...FIELD, flex: "1 1 0", minWidth: 0 }}
-        />
-        <button
-          type="submit"
-          className="press"
-          style={{ ...PILL_PRIMARY, flexShrink: 0, padding: "0 20px" }}
+      {adding ? (
+        <form
+          onSubmit={createRoutine}
+          style={{
+            background: "var(--surface)",
+            borderRadius: "var(--radius-card)",
+            boxShadow: "var(--shadow-card)",
+            padding: 16,
+            margin: "16px 0",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
         >
-          作成
+          <input
+            type="text"
+            placeholder="ルーティン名(例: 胸の日)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+            style={FIELD}
+          />
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => {
+                setName("");
+                setAdding(false);
+              }}
+              className="press"
+              style={{
+                flex: 1,
+                background: "var(--surface-2)",
+                color: "var(--text-sub)",
+                border: "none",
+                borderRadius: 999,
+                padding: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              キャンセル
+            </button>
+            <button
+              type="submit"
+              className="press"
+              style={{ ...PILL_PRIMARY, flex: 1, padding: 12, opacity: name.trim() ? 1 : 0.5 }}
+            >
+              作成
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button
+          onClick={() => setAdding(true)}
+          className="press"
+          style={{
+            display: "block",
+            width: "100%",
+            margin: "16px 0",
+            textAlign: "center",
+            background: "none",
+            border: "1.5px dashed var(--border-strong)",
+            borderRadius: "var(--radius-card)",
+            padding: 16,
+            color: "var(--primary)",
+            fontWeight: 700,
+            fontSize: 16,
+            cursor: "pointer",
+          }}
+        >
+          + ルーティンを追加
         </button>
-      </form>
+      )}
 
       {loading && <p style={{ color: "var(--text-muted)" }}>読み込み中...</p>}
 
