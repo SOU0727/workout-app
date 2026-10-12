@@ -31,9 +31,22 @@ const smallButton = (background, color, border = "none") => ({
 
 const LONG_PRESS_MS = 500;
 const LONG_PRESS_MOVE_PX = 8;
+const SWIPE_START_PX = 10;
+const DELETE_WIDTH = 88;
 
-export default function ExerciseSetCard({ user, sessionId, sessionExercise, sets, onLongPress }) {
+export default function ExerciseSetCard({
+  user,
+  sessionId,
+  sessionExercise,
+  sets,
+  onLongPress,
+  swipeOpen = false,
+  onSwipeChange,
+  onDelete,
+}) {
   const pressRef = useRef(null);
+  const swipeRef = useRef(null);
+  const [dragX, setDragX] = useState(null);
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -105,19 +118,103 @@ export default function ExerciseSetCard({ user, sessionId, sessionExercise, sets
     if (Math.hypot(e.clientX - p.x, e.clientY - p.y) > LONG_PRESS_MOVE_PX) cancelPress();
   };
 
+  // 横にスワイプすると右端に「削除」が現れる(LINEのトーク一覧のイメージ)
+  const startSwipe = (e) => {
+    if (!onSwipeChange) return;
+    swipeRef.current = { x: e.clientX, y: e.clientY, base: swipeOpen ? DELETE_WIDTH : 0, last: swipeOpen ? DELETE_WIDTH : 0, active: false };
+  };
+
+  const moveSwipe = (e) => {
+    const s = swipeRef.current;
+    if (!s) return;
+    const dx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+    if (!s.active) {
+      if (Math.abs(dx) < SWIPE_START_PX || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      s.active = true;
+      cancelPress();
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // キャプチャできなくてもスワイプ自体は動く
+      }
+    }
+    s.last = Math.min(Math.max(s.base - dx, 0), DELETE_WIDTH + 24);
+    setDragX(s.last);
+  };
+
+  const endSwipe = (e) => {
+    const s = swipeRef.current;
+    swipeRef.current = null;
+    if (!s) return;
+    if (s.active) {
+      onSwipeChange(e.type !== "pointercancel" && s.last > DELETE_WIDTH / 2);
+      setDragX(null);
+    } else if (swipeOpen && e.type === "pointerup") {
+      onSwipeChange(false);
+    }
+  };
+
+  const offset = dragX ?? (swipeOpen ? DELETE_WIDTH : 0);
+
   return (
     <div
       data-exercise-id={sessionExercise.exerciseId}
-      onPointerDown={startPress}
-      onPointerMove={movePress}
-      onPointerUp={cancelPress}
-      onPointerCancel={cancelPress}
-      onPointerLeave={cancelPress}
-      onContextMenu={(e) => {
-        if (onLongPress && !e.target.closest("input")) e.preventDefault();
-      }}
-      style={{ border: "1px solid #DADADA", borderRadius: 14, padding: 14, marginBottom: 10 }}
+      style={{ position: "relative", marginBottom: 10, borderRadius: 14, overflow: "hidden" }}
     >
+      {offset > 0 && (
+        <button
+          onClick={onDelete}
+          aria-label={`${sessionExercise.exerciseName}を削除`}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: DELETE_WIDTH,
+            border: "none",
+            background: "#C8453B",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer",
+          }}
+        >
+          削除
+        </button>
+      )}
+      <div
+        onPointerDown={(e) => {
+          startPress(e);
+          startSwipe(e);
+        }}
+        onPointerMove={(e) => {
+          movePress(e);
+          moveSwipe(e);
+        }}
+        onPointerUp={(e) => {
+          cancelPress();
+          endSwipe(e);
+        }}
+        onPointerCancel={(e) => {
+          cancelPress();
+          endSwipe(e);
+        }}
+        onPointerLeave={cancelPress}
+        onContextMenu={(e) => {
+          if (onLongPress && !e.target.closest("input")) e.preventDefault();
+        }}
+        style={{
+          position: "relative",
+          border: "1px solid #DADADA",
+          borderRadius: 14,
+          padding: 14,
+          background: "#F5F5F5",
+          touchAction: "pan-y",
+          transform: `translateX(${-offset}px)`,
+          transition: dragX === null ? "transform 0.2s ease" : "none",
+        }}
+      >
       <div
         style={{
           fontWeight: 700,
@@ -229,6 +326,7 @@ export default function ExerciseSetCard({ user, sessionId, sessionExercise, sets
           記録
         </button>
       </form>
+      </div>
     </div>
   );
 }

@@ -73,6 +73,7 @@ export default function Workout({ user }) {
   const [error, setError] = useState("");
   const [log, setLog] = useState([]);
   const [editMode, setEditMode] = useState(false);
+  const [openSwipeId, setOpenSwipeId] = useState(null);
   const [hiddenIds, setHiddenIds] = useState([]);
   const [undoName, setUndoName] = useState(null);
   const initializedRef = useRef(false);
@@ -279,6 +280,7 @@ export default function Workout({ user }) {
 
   const startEditMode = () => {
     document.activeElement?.blur?.();
+    setOpenSwipeId(null);
     setEditMode(true);
   };
 
@@ -325,8 +327,19 @@ export default function Workout({ user }) {
     );
   }
 
+  // 開いている「削除」の外側を触ったら閉じる
+  const closeSwipeOnOutsidePress = (e) => {
+    if (!openSwipeId) return;
+    const open = sessionExercises.find((x) => x.id === openSwipeId);
+    const card = e.target.closest("[data-exercise-id]");
+    if (!open || !card || card.dataset.exerciseId !== open.exerciseId) setOpenSwipeId(null);
+  };
+
   return (
-    <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
+    <div
+      onPointerDownCapture={closeSwipeOnOutsidePress}
+      style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <h1 style={{ fontSize: 20 }}>今日のワークアウト</h1>
         {editMode ? (
@@ -392,6 +405,12 @@ export default function Workout({ user }) {
                     sessionExercise={ex}
                     sets={setsFor(ex.id)}
                     onLongPress={startEditMode}
+                    swipeOpen={openSwipeId === ex.id}
+                    onSwipeChange={(open) => setOpenSwipeId(open ? ex.id : null)}
+                    onDelete={() => {
+                      setOpenSwipeId(null);
+                      deleteExercise(ex.id);
+                    }}
                   />
                 ))}
               </div>
@@ -415,7 +434,7 @@ export default function Workout({ user }) {
 
               {visibleExercises.length > 0 && (
                 <p style={{ textAlign: "center", fontSize: 12, color: "#8A8A90", marginTop: 14 }}>
-                  種目を長押しすると、並べ替え・削除ができます
+                  左にスワイプで削除、長押しで並べ替えができます
                 </p>
               )}
             </>
