@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 const ACCENT = "var(--primary)";
 
@@ -24,11 +24,43 @@ const navItems = [
   { to: "/routines", label: "ルーティン", icon: "routines" },
 ];
 
+// 今のURLがどのタブに当たるか(タブ以外の画面なら -1)
+const tabIndex = (pathname) =>
+  navItems.findIndex((it) => (it.to === "/" ? pathname === "/" : pathname.startsWith(it.to)));
+
 const isField = (el) =>
   el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT");
 
+/**
+ * 画面下に浮かぶ、すりガラス風のタブバー。
+ *
+ * 選択中のタブの下には「レンズ」が1つだけあり(iOS風)、タブを切り替えると
+ * ふくらんでガラスのようになり、ばねのように滑って移動し、少し揺れて落ち着く。
+ * レンズの中にはタブ一列ぶんの青いコピーが入っていて、レンズと逆向きに同じだけ
+ * ずらしてあるので、本物のタブと位置がぴったり重なる(通ったところが青く、少し拡大して見える)。
+ * 見た目は index.css の .tab-lens を参照。
+ */
 export default function BottomNav() {
   const [typing, setTyping] = useState(false);
+  const { pathname } = useLocation();
+  const index = tabIndex(pathname);
+  // レンズの位置: 今のタブ。タブ以外の画面(設定など)では最後にいたタブのまま隠す
+  const [shown, setShown] = useState(index < 0 ? 0 : index);
+  const [moving, setMoving] = useState(false);
+
+  // タブが変わったら、描画中にレンズの行き先を更新して「移動中」にする
+  // (Reactの「propsの変化に合わせてstateを調整する」書き方。effectを使わない)
+  if (index >= 0 && index !== shown) {
+    setShown(index);
+    setMoving(true);
+  }
+
+  // 少ししたら元の大きさへ。shown が変わるたびにタイマーを掛け直す
+  useEffect(() => {
+    if (!moving) return;
+    const t = window.setTimeout(() => setMoving(false), 300);
+    return () => window.clearTimeout(t);
+  }, [moving, shown]);
 
   useEffect(() => {
     const onIn = (e) => {
@@ -46,7 +78,6 @@ export default function BottomNav() {
   if (typing) return null;
 
   return (
-    // 画面下に浮かぶ、すりガラス風のタブバー
     <div
       style={{
         position: "fixed",
@@ -62,6 +93,7 @@ export default function BottomNav() {
     >
       <nav
         style={{
+          position: "relative",
           pointerEvents: "auto",
           display: "flex",
           width: "100%",
@@ -80,41 +112,63 @@ export default function BottomNav() {
             key={item.to}
             to={item.to}
             end={item.to === "/"}
-            style={({ isActive }) => ({
-              flex: 1,
-              minWidth: 0,
-              height: 56,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 3,
-              borderRadius: 26,
-              textDecoration: "none",
-              background: isActive ? "var(--primary-soft)" : "transparent",
-              color: isActive ? ACCENT : "var(--text-sub)",
-              fontWeight: isActive ? 700 : 500,
-              fontSize: 10.5,
-              transition: "background 0.2s ease, color 0.2s ease",
-            })}
+            style={{ ...itemStyle, color: "var(--text-sub)", fontWeight: 500 }}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              {iconPaths[item.icon]}
-            </svg>
+            <TabIcon icon={item.icon} strokeWidth={1.8} />
             <span style={{ whiteSpace: "nowrap" }}>{item.label}</span>
           </NavLink>
         ))}
+
+        <div
+          aria-hidden="true"
+          className="tab-lens"
+          data-moving={moving}
+          data-hidden={index < 0}
+          style={{ "--i": shown }}
+        >
+          <div className="tab-lens-body">
+            <div className="tab-lens-row">
+              {navItems.map((item) => (
+                <span key={item.to} style={{ ...itemStyle, color: ACCENT, fontWeight: 700 }}>
+                  <TabIcon icon={item.icon} strokeWidth={2} />
+                  <span style={{ whiteSpace: "nowrap" }}>{item.label}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
       </nav>
     </div>
+  );
+}
+
+const itemStyle = {
+  flex: 1,
+  minWidth: 0,
+  height: 56,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 3,
+  textDecoration: "none",
+  fontSize: 10.5,
+};
+
+function TabIcon({ icon, strokeWidth }) {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {iconPaths[icon]}
+    </svg>
   );
 }
