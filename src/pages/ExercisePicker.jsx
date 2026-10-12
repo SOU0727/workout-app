@@ -5,6 +5,7 @@ import { db } from "../firebase";
 import { getDocsCacheFirst, getDocsPreferCache } from "../firestoreHelpers";
 import { useSets } from "../setsContext";
 import { dataGroupMap } from "../bodyGroups";
+import { FIELD, PILL_PRIMARY } from "../layout";
 import BodyPicker from "../components/BodyPicker";
 import { BackButton, ExerciseRow } from "../components/PickerParts";
 
@@ -171,7 +172,7 @@ export default function ExercisePicker({ user }) {
       <div style={{ maxWidth: 420, margin: "0 auto", padding: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <BackButton onClick={() => navigate(-1)} />
-          <h1 style={{ fontSize: 20, margin: 0 }}>種目を選択</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>種目を選択</h1>
         </div>
         {loadError ? (
           <p style={{ color: "var(--danger)", fontSize: 13, marginTop: 20 }}>
@@ -221,7 +222,7 @@ export default function ExercisePicker({ user }) {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <BackButton onClick={() => navigate(-1)} />
-            <h1 style={{ fontSize: 20, margin: 0 }}>部位を選択</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>部位を選択</h1>
           </div>
           <ModeToggle mode={mode} onChange={changeMode} />
         </div>
@@ -231,10 +232,12 @@ export default function ExercisePicker({ user }) {
               key={g}
               onClick={() => setSelectedGroup(g)}
               style={{
-                padding: "20px 10px",
-                border: "1px solid var(--border)",
-                borderRadius: 14,
+                padding: "22px 10px",
+                border: "none",
+                borderRadius: "var(--radius-card)",
+                boxShadow: "var(--shadow-card)",
                 background: "var(--surface)",
+                color: "var(--text)",
                 fontSize: 15,
                 fontWeight: 700,
                 cursor: "pointer",
@@ -257,7 +260,7 @@ export default function ExercisePicker({ user }) {
     <div style={{ maxWidth: 420, margin: "0 auto", padding: 20 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
         <BackButton onClick={() => setSelectedGroup(null)} />
-        <h1 style={{ fontSize: 20, margin: 0 }}>{selectedGroup}</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>{selectedGroup}</h1>
       </div>
 
       <ul style={{ listStyle: "none", padding: 0 }}>
@@ -271,7 +274,7 @@ export default function ExercisePicker({ user }) {
         ))}
       </ul>
 
-      <div style={{ border: "1.5px dashed var(--border-strong)", borderRadius: 12, padding: 14, marginTop: 16 }}>
+      <div style={{ border: "1.5px dashed var(--border-strong)", borderRadius: "var(--radius-card)", padding: 16, marginTop: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: "var(--primary)" }}>
           種目を新規作成
         </div>
@@ -281,18 +284,18 @@ export default function ExercisePicker({ user }) {
             placeholder="種目名(例: ケーブルフライ)"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            style={{ padding: 10, border: "1px solid var(--border)", borderRadius: 8 }}
+            style={FIELD}
           />
           <input
             type="text"
             placeholder="部位(例: 胸)"
             value={newMuscle}
             onChange={(e) => setNewMuscle(e.target.value)}
-            style={{ padding: 10, border: "1px solid var(--border)", borderRadius: 8 }}
+            style={FIELD}
           />
           <button
             type="submit"
-            style={{ background: "var(--primary)", color: "var(--on-primary)", border: "none", borderRadius: 8, padding: 10 }}
+            style={{ ...PILL_PRIMARY, padding: 12 }}
           >
             この種目を追加する
           </button>

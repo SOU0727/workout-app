@@ -70,7 +70,7 @@ export default function HistoryDay({ user }) {
   return (
     <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
       <BackLink to="/history">履歴</BackLink>
-      <h1 style={{ fontSize: 20, marginTop: 4 }}>{formatDay(key)}</h1>
+      <h1 style={{ fontSize: 24, fontWeight: 800, marginTop: 4 }}>{formatDay(key)}</h1>
 
       <StatusMessage loading={loading} error={error} />
       {empty && <p style={{ color: "var(--text-muted)", marginTop: 20 }}>この日の記録はありません</p>}

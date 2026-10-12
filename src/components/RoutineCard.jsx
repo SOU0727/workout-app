@@ -70,20 +70,30 @@ export default function RoutineCard({ user, routine, onDeleted }) {
   };
 
   return (
-    <div style={{ border: "1px solid var(--border)", borderRadius: 12, padding: 14, marginBottom: 10 }}>
+    <div
+      style={{
+        background: "var(--surface)",
+        borderRadius: "var(--radius-card)",
+        boxShadow: "var(--shadow-card)",
+        padding: 18,
+        marginBottom: 14,
+      }}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-        <div style={{ fontWeight: 700 }}>{routine.name}</div>
+        <div style={{ fontWeight: 700, fontSize: 17 }}>{routine.name}</div>
         <button
           onClick={startWorkout}
           disabled={loading || starting}
+          className="press"
           style={{
             flexShrink: 0,
             background: "var(--primary)",
             color: "var(--on-primary)",
             border: "none",
             borderRadius: 999,
-            padding: "6px 14px",
-            fontSize: 12.5,
+            fontWeight: 700,
+            padding: "8px 18px",
+            fontSize: 13.5,
             cursor: loading || starting ? "default" : "pointer",
             opacity: loading || starting ? 0.6 : 1,
           }}
@@ -142,7 +152,7 @@ export default function RoutineCard({ user, routine, onDeleted }) {
       >
         <Link
           to={`/exercises?type=routine&id=${routine.id}`}
-          style={{ fontSize: 12.5, color: "var(--primary)", fontWeight: 700 }}
+          style={{ fontSize: 12.5, color: "var(--primary)", fontWeight: 700, textDecoration: "none" }}
         >
           + 種目を追加
         </Link>

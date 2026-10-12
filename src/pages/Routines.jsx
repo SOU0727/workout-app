@@ -3,7 +3,7 @@ import { addDoc, collection, orderBy, query, serverTimestamp } from "firebase/fi
 import { db } from "../firebase";
 import { getDocsCacheFirst } from "../firestoreHelpers";
 import BottomNav from "../components/BottomNav";
-import { PAGE_PADDING } from "../layout";
+import { FIELD, PAGE_PADDING, PILL_PRIMARY } from "../layout";
 import RoutineCard from "../components/RoutineCard";
 
 export default function Routines({ user }) {
@@ -42,7 +42,7 @@ export default function Routines({ user }) {
 
   return (
     <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
-      <h1 style={{ fontSize: 20 }}>ルーティン</h1>
+      <h1 style={{ fontSize: 24, fontWeight: 800 }}>ルーティン</h1>
 
       <form onSubmit={createRoutine} style={{ display: "flex", gap: 8, margin: "16px 0" }}>
         <input
@@ -50,24 +50,12 @@ export default function Routines({ user }) {
           placeholder="例: 胸の日"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{
-            flex: "1 1 0",
-            minWidth: 0,
-            padding: 10,
-            border: "1px solid var(--border)",
-            borderRadius: 8,
-          }}
+          style={{ ...FIELD, flex: "1 1 0", minWidth: 0 }}
         />
         <button
           type="submit"
-          style={{
-            flexShrink: 0,
-            background: "var(--primary)",
-            color: "var(--on-primary)",
-            border: "none",
-            borderRadius: 8,
-            padding: "0 16px",
-          }}
+          className="press"
+          style={{ ...PILL_PRIMARY, flexShrink: 0, padding: "0 20px" }}
         >
           作成
         </button>

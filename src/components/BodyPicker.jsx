@@ -64,7 +64,7 @@ export default function BodyPicker({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <BackButton onClick={onBack} />
-          <h1 style={{ fontSize: 20, margin: 0 }}>{title}</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>{title}</h1>
         </div>
         {toggle}
       </div>
@@ -111,8 +111,8 @@ export default function BodyPicker({
               maxHeight: "42%",
               overflowY: "auto",
               background: "var(--surface)",
-              borderRadius: "18px 18px 0 0",
-              boxShadow: "0 -4px 16px rgba(0,0,0,0.12)",
+              borderRadius: "28px 28px 0 0",
+              boxShadow: "0 -6px 24px rgba(1, 40, 148, 0.16)",
               padding: "14px 16px 20px",
             }}
           >

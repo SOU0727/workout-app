@@ -1,20 +1,21 @@
 import { Link } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import { ROUND_BUTTON } from "../layout";
 
 export default function Settings({ user }) {
   return (
     <div style={{ maxWidth: 420, margin: "0 auto", padding: 20 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <Link to="/" style={{ display: "flex" }}>
+        <Link to="/" aria-label="戻る" className="press" style={ROUND_BUTTON}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m15 18-6-6 6-6"></path>
           </svg>
         </Link>
-        <h1 style={{ fontSize: 20, margin: 0 }}>設定</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>設定</h1>
       </div>
 
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 16, marginBottom: 20 }}>
+      <div style={{ background: "var(--surface)", borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)", padding: 18, marginBottom: 20 }}>
         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>ログイン中のアカウント</div>
         <div style={{ fontSize: 15, fontWeight: 600, marginTop: 4 }}>{user.email}</div>
       </div>
@@ -23,11 +24,12 @@ export default function Settings({ user }) {
         onClick={() => signOut(auth)}
         style={{
           width: "100%",
-          background: "none",
-          border: "1px solid var(--danger)",
+          background: "var(--surface)",
+          boxShadow: "var(--shadow-card)",
+          border: "none",
           color: "var(--danger)",
-          borderRadius: 10,
-          padding: 14,
+          borderRadius: 999,
+          padding: 15,
           fontSize: 15,
           fontWeight: 700,
         }}

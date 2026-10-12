@@ -1,10 +1,8 @@
+import { ROUND_BUTTON } from "../layout";
+
 export function BackButton({ onClick }) {
   return (
-    <button
-      onClick={onClick}
-      aria-label="戻る"
-      style={{ background: "none", border: "none", padding: 0, display: "flex", cursor: "pointer" }}
-    >
+    <button onClick={onClick} aria-label="戻る" className="press" style={ROUND_BUTTON}>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="m15 18-6-6 6-6"></path>
       </svg>
@@ -20,10 +18,11 @@ export function ExerciseRow({ exercise, used, onSelect }) {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: 12,
-        border: "1px solid var(--border)",
-        borderRadius: 12,
-        marginBottom: 8,
+        padding: "14px 16px",
+        background: "var(--surface)",
+        boxShadow: "var(--shadow-card)",
+        borderRadius: 18,
+        marginBottom: 10,
         cursor: "pointer",
       }}
     >
@@ -37,8 +36,9 @@ export function ExerciseRow({ exercise, used, onSelect }) {
             fontSize: 11,
             color: "var(--primary)",
             background: "var(--primary-soft)",
-            padding: "3px 8px",
-            borderRadius: 6,
+            padding: "4px 10px",
+            borderRadius: 999,
+            fontWeight: 700,
           }}
         >
           使用済み

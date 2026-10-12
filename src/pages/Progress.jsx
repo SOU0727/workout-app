@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import BottomNav from "../components/BottomNav";
-import { PAGE_PADDING } from "../layout";
+import { FIELD, PAGE_PADDING, card } from "../layout";
 import { useSets } from "../setsContext";
 
 export default function Progress() {
@@ -31,7 +31,7 @@ export default function Progress() {
 
   return (
     <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
-      <h1 style={{ fontSize: 20 }}>進捗</h1>
+      <h1 style={{ fontSize: 24, fontWeight: 800, }}>進捗</h1>
 
       {exerciseOptions.length === 0 ? (
         <p style={{ color: "var(--text-muted)", marginTop: 20 }}>
@@ -42,7 +42,7 @@ export default function Progress() {
           <select
             value={selectedExerciseId}
             onChange={(e) => setPickedExerciseId(e.target.value)}
-            style={{ padding: 10, border: "1px solid var(--border)", borderRadius: 8, marginTop: 16, marginBottom: 20, width: "100%" }}
+            style={{ ...FIELD, marginTop: 16, marginBottom: 20, width: "100%" }}
           >
             {exerciseOptions.map((ex) => (
               <option key={ex.id} value={ex.id}>
@@ -52,11 +52,11 @@ export default function Progress() {
           </select>
 
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <div style={{ flex: 1, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 12 }}>
+            <div style={{ ...card, flex: 1 }}>
               <div style={{ fontSize: 11, color: "var(--text-muted)" }}>自己ベスト(重量)</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: "var(--primary)" }}>{maxWeight}kg</div>
             </div>
-            <div style={{ flex: 1, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 12 }}>
+            <div style={{ ...card, flex: 1 }}>
               <div style={{ fontSize: 11, color: "var(--text-muted)" }}>自己ベスト(回数)</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: "var(--primary)" }}>{maxReps}回</div>
             </div>
@@ -94,7 +94,7 @@ function WeightChart({ sets }) {
   const pointsAttr = points.map((p) => `${p.x},${p.y}`).join(" ");
 
   return (
-    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 16 }}>
+    <div style={card}>
       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>重量の推移(kg)</div>
       <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height}>
         <polyline

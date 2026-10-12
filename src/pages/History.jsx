@@ -90,15 +90,15 @@ export default function History() {
 
   return (
     <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
-      <h1 style={{ fontSize: 20 }}>履歴</h1>
+      <h1 style={{ fontSize: 24, fontWeight: 800, }}>履歴</h1>
 
       <div
         style={{
           display: "flex",
           background: "var(--surface-2)",
-          borderRadius: 10,
-          padding: 3,
-          margin: "14px 0 16px",
+          borderRadius: 999,
+          padding: 4,
+          margin: "14px 0 18px",
         }}
       >
         {[
@@ -111,9 +111,9 @@ export default function History() {
             style={{
               flex: 1,
               border: "none",
-              borderRadius: 8,
-              padding: "9px 0",
-              fontWeight: 600,
+              borderRadius: 999,
+              padding: "10px 0",
+              fontWeight: 700,
               fontSize: 14,
               background: mode === value ? "var(--surface)" : "transparent",
               color: mode === value ? "var(--primary)" : "var(--text-muted)",

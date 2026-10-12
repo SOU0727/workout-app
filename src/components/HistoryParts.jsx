@@ -30,7 +30,7 @@ export function StatusMessage({ loading, error }) {
             marginLeft: 8,
             background: "none",
             border: "1px solid var(--danger)",
-            borderRadius: 6,
+            borderRadius: 999,
             padding: "4px 10px",
             color: "var(--danger)",
           }}

@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { auth } from "./firebase";
+import { FIELD, PILL_PRIMARY } from "./layout";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -37,7 +38,7 @@ export default function Auth() {
         padding: 24,
       }}
     >
-      <h1 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", marginBottom: 24 }}>
+      <h1 style={{ fontSize: 28, fontWeight: 800, textAlign: "center", marginBottom: 28 }}>
         {isSignup ? "新規登録" : "ログイン"}
       </h1>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -47,7 +48,7 @@ export default function Auth() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ padding: 14, border: "1px solid var(--border)", borderRadius: 10, fontSize: 16 }}
+          style={{ ...FIELD, padding: 15, fontSize: 16 }}
         />
         <input
           type="password"
@@ -55,20 +56,13 @@ export default function Auth() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ padding: 14, border: "1px solid var(--border)", borderRadius: 10, fontSize: 16 }}
+          style={{ ...FIELD, padding: 15, fontSize: 16 }}
         />
         {error && <p style={{ color: "var(--danger)", fontSize: 13 }}>{error}</p>}
         <button
           type="submit"
-          style={{
-            background: "var(--primary)",
-            color: "var(--on-primary)",
-            border: "none",
-            borderRadius: 10,
-            padding: 14,
-            fontSize: 16,
-            fontWeight: 700,
-          }}
+          className="press"
+          style={{ ...PILL_PRIMARY, padding: 15, fontSize: 16 }}
         >
           {isSignup ? "登録する" : "ログイン"}
         </button>
