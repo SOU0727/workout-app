@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   addDoc,
   collection,
@@ -29,7 +29,11 @@ const smallButton = (background, color, border = "none") => ({
   cursor: "pointer",
 });
 
-export default function ExerciseSetCard({ user, sessionId, sessionExercise, sets }) {
+const LONG_PRESS_MS = 500;
+const LONG_PRESS_MOVE_PX = 8;
+
+export default function ExerciseSetCard({ user, sessionId, sessionExercise, sets, onLongPress }) {
+  const pressRef = useRef(null);
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -76,12 +80,55 @@ export default function ExerciseSetCard({ user, sessionId, sessionExercise, sets
     setEditingId(null);
   };
 
+  // カードを長押し(入力欄やボタン以外)すると編集モードに入る
+  const cancelPress = () => {
+    if (pressRef.current) {
+      clearTimeout(pressRef.current.timer);
+      pressRef.current = null;
+    }
+  };
+
+  const startPress = (e) => {
+    if (!onLongPress || e.target.closest("input, button, a, select")) return;
+    cancelPress();
+    const timer = setTimeout(() => {
+      pressRef.current = null;
+      if (navigator.vibrate) navigator.vibrate(15);
+      onLongPress();
+    }, LONG_PRESS_MS);
+    pressRef.current = { timer, x: e.clientX, y: e.clientY };
+  };
+
+  const movePress = (e) => {
+    const p = pressRef.current;
+    if (!p) return;
+    if (Math.hypot(e.clientX - p.x, e.clientY - p.y) > LONG_PRESS_MOVE_PX) cancelPress();
+  };
+
   return (
     <div
       data-exercise-id={sessionExercise.exerciseId}
+      onPointerDown={startPress}
+      onPointerMove={movePress}
+      onPointerUp={cancelPress}
+      onPointerCancel={cancelPress}
+      onPointerLeave={cancelPress}
+      onContextMenu={(e) => {
+        if (onLongPress && !e.target.closest("input")) e.preventDefault();
+      }}
       style={{ border: "1px solid #DADADA", borderRadius: 14, padding: 14, marginBottom: 10 }}
     >
-      <div style={{ fontWeight: 700, marginBottom: 8 }}>{sessionExercise.exerciseName}</div>
+      <div
+        style={{
+          fontWeight: 700,
+          marginBottom: 8,
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          WebkitTouchCallout: "none",
+        }}
+      >
+        {sessionExercise.exerciseName}
+      </div>
 
       {sets.length > 0 && (
         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 10px" }}>

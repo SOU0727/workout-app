@@ -15,7 +15,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-function Row({ item, onDelete }) {
+function Row({ item, index, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   });
@@ -26,14 +26,6 @@ function Row({ item, onDelete }) {
       {...attributes}
       {...listeners}
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "12px 12px",
-        background: "#fff",
-        border: isDragging ? "1px solid #4C5B75" : "1px solid #DADADA",
-        borderRadius: 12,
-        boxShadow: isDragging ? "0 8px 20px rgba(0,0,0,0.18)" : "none",
         transform: transform ? CSS.Transform.toString({ ...transform, x: 0 }) : undefined,
         transition,
         position: "relative",
@@ -41,48 +33,71 @@ function Row({ item, onDelete }) {
         touchAction: "manipulation",
         userSelect: "none",
         WebkitUserSelect: "none",
+        WebkitTouchCallout: "none",
         cursor: "grab",
       }}
     >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#A3A3AA"
-        strokeWidth="2"
-        strokeLinecap="round"
-        aria-label="並べ替え"
-        style={{ flexShrink: 0 }}
-      >
-        <path d="M4 7h16"></path>
-        <path d="M4 12h16"></path>
-        <path d="M4 17h16"></path>
-      </svg>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 600, fontSize: 14.5 }}>{item.name}</div>
-        <div style={{ fontSize: 12, color: "#74747A", marginTop: 2 }}>
-          {item.setCount > 0 ? `${item.setCount}セット記録済み` : "記録なし"}
-        </div>
-      </div>
-      <button
-        onClick={() => onDelete(item.id)}
-        onMouseDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
+      {/* ぷるぷる揺れるのは内側。外側は並べ替えの移動に使うため分けている */}
+      <div
+        className={isDragging ? undefined : "jiggle"}
         style={{
-          flexShrink: 0,
-          background: "none",
-          border: "1px solid #9A3B33",
-          color: "#9A3B33",
-          borderRadius: 8,
-          padding: "8px 12px",
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "10px 14px 10px 10px",
+          background: "#fff",
+          border: isDragging ? "1px solid #4C5B75" : "1px solid #DADADA",
+          borderRadius: 12,
+          boxShadow: isDragging ? "0 10px 24px rgba(0,0,0,0.22)" : "none",
+          transform: isDragging ? "scale(1.03)" : undefined,
+          animationDelay: `${-(index % 4) * 0.09}s`,
         }}
       >
-        削除
-      </button>
+        <button
+          onClick={() => onDelete(item.id)}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          aria-label={`${item.name}を削除`}
+          style={{
+            flexShrink: 0,
+            width: 30,
+            height: 30,
+            borderRadius: 15,
+            border: "none",
+            background: "#C8453B",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+            <path d="M5 12h14"></path>
+          </svg>
+        </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 600, fontSize: 14.5 }}>{item.name}</div>
+          <div style={{ fontSize: 12, color: "#74747A", marginTop: 2 }}>
+            {item.setCount > 0 ? `${item.setCount}セット記録済み` : "記録なし"}
+          </div>
+        </div>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#A3A3AA"
+          strokeWidth="2"
+          strokeLinecap="round"
+          aria-label="並べ替え"
+          style={{ flexShrink: 0 }}
+        >
+          <path d="M4 7h16"></path>
+          <path d="M4 12h16"></path>
+          <path d="M4 17h16"></path>
+        </svg>
+      </div>
     </li>
   );
 }
@@ -97,7 +112,7 @@ export default function ExerciseEditList({ items, onReorder, onDelete }) {
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } })
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 6 } })
   );
 
   const ordered = override
@@ -115,7 +130,7 @@ export default function ExerciseEditList({ items, onReorder, onDelete }) {
   return (
     <div>
       <p style={{ fontSize: 12.5, color: "#74747A", margin: "4px 0 12px" }}>
-        行を長押ししてドラッグすると並べ替えできます。
+        行を触ったままドラッグで並べ替え、左の「−」で削除できます。終わったら「完了」を押してください。
       </p>
       <DndContext
         sensors={sensors}
@@ -136,8 +151,8 @@ export default function ExerciseEditList({ items, onReorder, onDelete }) {
               gap: 8,
             }}
           >
-            {ordered.map((item) => (
-              <Row key={item.id} item={item} onDelete={onDelete} />
+            {ordered.map((item, index) => (
+              <Row key={item.id} item={item} index={index} onDelete={onDelete} />
             ))}
           </ul>
         </SortableContext>

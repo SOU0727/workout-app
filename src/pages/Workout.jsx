@@ -277,6 +277,11 @@ export default function Workout({ user }) {
     batch.commit().catch((err) => console.error(err));
   };
 
+  const startEditMode = () => {
+    document.activeElement?.blur?.();
+    setEditMode(true);
+  };
+
   const focusId = searchParams.get("focus");
   useEffect(() => {
     if (!focusId || sessionExercises.length === 0 || focusedRef.current) return;
@@ -324,26 +329,27 @@ export default function Workout({ user }) {
     <div style={{ maxWidth: 420, margin: "0 auto", padding: PAGE_PADDING }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <h1 style={{ fontSize: 20 }}>今日のワークアウト</h1>
-        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+        {editMode ? (
           <button
-            onClick={() => setEditMode((v) => !v)}
-            disabled={!sessionId}
+            onClick={() => setEditMode(false)}
             style={{
-              background: editMode ? "#4C5B75" : "#fff",
-              color: editMode ? "#fff" : "#4C5B75",
-              border: "1px solid #4C5B75",
+              flexShrink: 0,
+              background: "#4C5B75",
+              color: "#fff",
+              border: "none",
               borderRadius: 10,
-              padding: "8px 14px",
-              fontWeight: 600,
-              opacity: sessionId ? 1 : 0.5,
+              padding: "8px 18px",
+              fontWeight: 700,
             }}
           >
-            {editMode ? "完了" : "編集"}
+            完了
           </button>
+        ) : (
           <button
             onClick={finishSession}
             disabled={!sessionId}
             style={{
+              flexShrink: 0,
               background: "#4C5B75",
               color: "#fff",
               border: "none",
@@ -354,7 +360,7 @@ export default function Workout({ user }) {
           >
             終了
           </button>
-        </div>
+        )}
       </div>
 
       {sessionId && (
@@ -385,6 +391,7 @@ export default function Workout({ user }) {
                     sessionId={sessionId}
                     sessionExercise={ex}
                     sets={setsFor(ex.id)}
+                    onLongPress={startEditMode}
                   />
                 ))}
               </div>
@@ -405,6 +412,12 @@ export default function Workout({ user }) {
               >
                 + 種目を追加
               </Link>
+
+              {visibleExercises.length > 0 && (
+                <p style={{ textAlign: "center", fontSize: 12, color: "#8A8A90", marginTop: 14 }}>
+                  種目を長押しすると、並べ替え・削除ができます
+                </p>
+              )}
             </>
           )}
         </>
